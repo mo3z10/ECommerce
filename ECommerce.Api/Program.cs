@@ -5,6 +5,7 @@ using ECommerce.Api.SeedData;
 using ECommerce.BIL.Services.AuthenicationServices;
 using ECommerce.BIL.Services.CartService;
 using ECommerce.BIL.Services.CustomerService;
+using ECommerce.BIL.Services.OrderService;
 using ECommerce.BIL.Services.ProductService;
 using ECommerce.DAL.Database;
 using ECommerce.DAL.IUnitOfWork;
@@ -37,6 +38,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IProductService, ProductSerivce>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ICustomerRepo, CustomerRepo>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepo<>), typeof(GenericRepo<>));
 builder.Services.AddMailKit(option =>
