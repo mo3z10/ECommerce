@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ECommerce.BIL.DTOS.CustomerDtos;
 using ECommerce.DAL.IUnitOfWork;
+using ECommerce.DAL.PaginationFilterDtos;
 
 namespace ECommerce.BIL.Services.CustomerService
 {
@@ -16,18 +17,23 @@ namespace ECommerce.BIL.Services.CustomerService
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ICollection<CustomerReadDto>> GetAllCustomersAsync()
+        public async Task<PagedResult<CustomerReadDto>> GetAllCustomersAsync(CustomerFilterDto filterDto)
         {
-          var Customers = await _unitOfWork.CustomersRepo.GetAllAsync();
-            var CustomersModel = Customers.Select(x => new CustomerReadDto()
+            var Customers = await _unitOfWork.CustomersRepo.GetPagedAllAsync(filterDto);
+            return new PagedResult<CustomerReadDto>
             {
-                Id = x.Id,
-                Address = x.Address,
-                PhoneNumber = x.PhoneNumber,
-                UserName = x.UserName,
+                Items =  Customers.Items.Select(p => new CustomerReadDto
+                {
+                    Id = p.Id,
+                    Address = p.Address,
+                    PhoneNumber = p.PhoneNumber,
+                    UserName = p.UserName,
 
-            }).ToList();
-            return CustomersModel;
+                }).ToList(),
+                TotalCount = Customers.TotalCount
+                , PageNumber = Customers.PageNumber
+                , PageSize = Customers.PageSize
+            };
         }
 
         public async Task<CustomerReadDto> GetCustomerByIdAsync(int id)

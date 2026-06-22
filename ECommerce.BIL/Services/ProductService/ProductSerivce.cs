@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ECommerce.BIL.DTOS.ProductDtos;
 using ECommerce.DAL.IUnitOfWork;
 using ECommerce.DAL.Models;
+using ECommerce.DAL.PaginationFilterDtos;
 using Microsoft.AspNetCore.Http;
 
 namespace ECommerce.BIL.Services.ProductService
@@ -53,24 +54,28 @@ namespace ECommerce.BIL.Services.ProductService
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<ICollection<ProductReadDto>> GetAllProductsAsync()
+        public async Task<PagedResult<ProductReadDto>> GetAllProductsAsync(ProductFilterDto filter)
         {
-
-            var products = await _unitOfWork.ProductsRepo.GetAllAsync();
-            var ProductReadDto = products.Select(P=> new ProductReadDto()
+            var Products = await _unitOfWork.ProductsRepo.GetProductsAsync(filter);
+            return new PagedResult<ProductReadDto>
             {
-                Id = P.Id,
-               Price = P.Price,
-                Description = P.Description,
-                 ImgUrl =  P.ImageUrl,
-                  Name = P.Name,
-                  InStock = P.InStock,
-                  QuantityInStock= P.QuntityInStock,
-                  RowVersion = P.RowVersion,
-
-            }).ToList();
-            return ProductReadDto;
+                Items = Products.Items.Select(P => new ProductReadDto
+                {
+                    Id = P.Id,
+                    Name = P.Name,
+                    Description = P.Description,
+                    InStock = P.InStock,
+                    ImgUrl = P.ImageUrl,
+                    RowVersion = P.RowVersion,
+                    Price = P.Price,
+                    QuantityInStock = P.QuntityInStock
+                }).ToList()
+                , PageNumber= Products.PageNumber,
+                PageSize = Products.PageSize,
+                TotalCount = Products.TotalCount,
+            };
         }
+
 
         public async Task<ProductReadDto> GetProductByIdAsync(int Id)
         {

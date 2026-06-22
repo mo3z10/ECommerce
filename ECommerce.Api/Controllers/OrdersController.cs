@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using ECommerce.BIL.DTOS.OrderDtos;
 using ECommerce.BIL.Services.OrderService;
+using ECommerce.DAL.PaginationFilterDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,9 +35,9 @@ namespace ECommerce.Api.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllOrders()
+        public async Task<IActionResult> GetAllOrders([FromQuery]OrderFilterDto orderFilterDto)
         {
-            var orders = await _orderService.GetAllOrdersAsync();
+            var orders = await _orderService.GetAllOrdersAsync(orderFilterDto);
 
             return Ok(orders);
         }

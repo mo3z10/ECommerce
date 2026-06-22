@@ -1,5 +1,6 @@
 ﻿using ECommerce.BIL.DTOS.ProductDtos;
 using ECommerce.BIL.Services.ProductService;
+using ECommerce.DAL.PaginationFilterDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,9 +21,9 @@ namespace ECommerce.Api.Controllers
         }
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult> GetAllAsync()
+        public async Task<ActionResult> GetAllAsync([FromQuery] ProductFilterDto productFilterDto)
         {
-            return Ok(await _productService.GetAllProductsAsync());
+            return Ok(await _productService.GetAllProductsAsync(productFilterDto));
         }
         [Authorize]
         [HttpGet("{id}")]

@@ -7,6 +7,7 @@ using Castle.Core.Resource;
 using ECommerce.BIL.DTOS.OrderDtos;
 using ECommerce.DAL.IUnitOfWork;
 using ECommerce.DAL.Models;
+using ECommerce.DAL.PaginationFilterDtos;
 
 namespace ECommerce.BIL.Services.OrderService
 {
@@ -128,6 +129,43 @@ namespace ECommerce.BIL.Services.OrderService
                 }).ToList()
             }).ToList();
             return OrderModel;
+        }
+
+        public async Task<PagedResult<OrderReadDto>> GetAllOrdersAsync(OrderFilterDto orderFilterDto)
+        {
+            var Orders = await _unitOfWork.OrdersRepo.GetPagedAllAsync(orderFilterDto);
+            return new PagedResult<OrderReadDto>
+            {
+                Items = Orders.Items.Select(o => new OrderReadDto()
+                {
+                    Id = o.Id,
+                    CustomerId = o.CustomerId,
+                    CustomerName = o.Customer.UserName,
+                    totalPrice = o.TotalPrice,
+                    totalQuantity = o.TotalQuintiy,
+                    OrderStatus = o.OrderStatus.ToString(),
+                    Items = o.OrderItems.Select(i => new ReadOrderItemDto()
+                    {
+                        ItemId = i.ProductId,
+
+                        ItemName = i.Product.Name,
+
+                        ItemUnitPrice = i.Price,
+
+                        ItemQuantity = i.Quantity,
+
+                        ItemTotalPrice = i.Price * i.Quantity
+
+                    }).ToList()
+
+
+                }).ToList(),
+                PageNumber = Orders.PageNumber,
+                PageSize = Orders.PageSize,
+                TotalCount = Orders.TotalCount
+
+            };
+
         }
 
         public async Task<ICollection<OrderReadDto>> GetCustomerOrderAsync(string CustomerId)

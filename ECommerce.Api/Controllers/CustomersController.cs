@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using ECommerce.BIL.DTOS.CustomerDtos;
 using ECommerce.BIL.Services.CustomerService;
+using ECommerce.DAL.PaginationFilterDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -36,12 +37,12 @@ namespace ECommerce.Api.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<ActionResult> GetAllAsync()
+        public async Task<ActionResult> GetAllAsync([FromQuery] CustomerFilterDto customerFilterDto)
         {
-            var customers = await _customerService.GetAllCustomersAsync();
+            var customers = await _customerService.GetAllCustomersAsync(customerFilterDto);
             if (customers == null)
             {
-                return NotFound();
+             return NotFound();
             }
             return Ok(customers);
         }

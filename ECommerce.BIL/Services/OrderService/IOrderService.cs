@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ECommerce.BIL.DTOS.OrderDtos;
+using ECommerce.DAL.PaginationFilterDtos;
 
 namespace ECommerce.BIL.Services.OrderService
 {
     public interface IOrderService
     {
-        Task<ICollection<OrderReadDto>> GetAllOrdersAsync();
+        Task<PagedResult<OrderReadDto>> GetAllOrdersAsync(OrderFilterDto orderFilterDto);
         Task<ICollection<OrderReadDto>> GetCustomerOrderAsync(string CustomerId);
         Task<OrderReadDto> GetOrderByIdAsync(int OrderId);
         Task DeleteOrderAsync(int OrderId);
