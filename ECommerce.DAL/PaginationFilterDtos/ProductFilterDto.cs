@@ -9,6 +9,8 @@ namespace ECommerce.DAL.PaginationFilterDtos
     public class ProductFilterDto :PaginationDto
     {
         public string? Search { get; set; }
+        public int? MaxQuantity { get; set; }
+        public int? MinQuantity { get; set; }
 
         public double? MinPrice { get; set; }
 

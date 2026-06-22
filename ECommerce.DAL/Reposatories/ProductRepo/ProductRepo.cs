@@ -42,6 +42,17 @@ namespace ECommerce.DAL.Reposatories.ProductRepo
             {
                 query = query.Where(p => p.Price >=filter.MinPrice);
             }
+            
+            if (filter.MinQuantity.HasValue)
+            {
+                query = query.Where(p => p.QuntityInStock >=filter.MinQuantity);
+            }
+            
+            if (filter.MaxQuantity.HasValue)
+            {
+                query = query.Where(p => p.QuntityInStock <=filter.MaxQuantity);
+            }
+            
             var TotalCount = await query.CountAsync();
             var products = await query.Skip(filter.PageSize * (filter.PageNumber - 1))
                 .Take(filter.PageSize)
