@@ -46,6 +46,7 @@ namespace ECommerce.DAL.Reposatories.CustomerRepo
                 CustomersQuery = CustomersQuery.Where(p => p.ApplicationUser.Email.Contains(filterDto.SearchEmail));
 
             }
+            CustomersQuery = ApplySort(CustomersQuery, filterDto);
             var TotalCount  = await CustomersQuery.CountAsync();
             var PagedCustomer = await CustomersQuery.Skip((filterDto.PageNumber -1 ) * filterDto.PageSize)
                 .Take(filterDto.PageSize)
@@ -63,6 +64,38 @@ namespace ECommerce.DAL.Reposatories.CustomerRepo
             return await _context.Customers
                 .FirstOrDefaultAsync(c => c.UserId == userId);
         }
-        
+        private IQueryable<Customer> ApplySort(IQueryable<Customer> query, CustomerFilterDto filter)
+        {
+            switch (filter.Sortby?.ToLower())
+            {
+                case "name":
+                    return
+                    (filter.IsDescending) ?
+                    query.OrderByDescending(x => x.UserName) :
+                    query.OrderBy(p => p.UserName);
+                case "email":
+                    return
+                    (filter.IsDescending) ?
+                  query.OrderByDescending(x => x.ApplicationUser.Email) :
+                  query.OrderBy(p => p.ApplicationUser.Email);
+
+                case "phone":
+                    return
+                    (filter.IsDescending) ?
+                    query.OrderByDescending(x => x.PhoneNumber) :
+                    query.OrderBy(p => p.PhoneNumber);
+                case "address":
+                    return
+                    (filter.IsDescending) ?
+                    query.OrderByDescending(x => x.Address) :
+                    query.OrderBy(p => p.Address);
+                case "NumberOfOrder":
+                    return
+                    (filter.IsDescending) ?
+                    query.OrderByDescending(x => x.orders.Count()):
+                    query.OrderBy(p => p.orders.Count);
+                default: return query.OrderBy(x => x.CreatedAt);
+            }
+        }
     }
 }

@@ -17,5 +17,7 @@ namespace ECommerce.DAL.PaginationFilterDtos
         public double? MaxPrice { get; set; }
 
         public bool? InStock { get; set; } = true;
+        public string? Sortby { get; set; }
+        public bool IsDescending { get; set; } = false;
     }
 }

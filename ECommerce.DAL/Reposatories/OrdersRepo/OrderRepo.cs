@@ -9,6 +9,7 @@ using ECommerce.DAL.PaginationFilterDtos;
 using ECommerce.DAL.Reposatories.GenericRepo;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ECommerce.DAL.Reposatories.OrdersRepo
 {
@@ -51,14 +52,39 @@ namespace ECommerce.DAL.Reposatories.OrdersRepo
                 OrdersQuery = OrdersQuery.Where(o => o.OrderStatus.ToString() == filter.orderStatus);
 
             }
+            OrdersQuery = ApplySort(OrdersQuery, filter);
+
             var FilteredOrders = await OrdersQuery.ToListAsync();
             return new PagedResult<Order>
             {
                 Items = FilteredOrders,
-                TotalCount = FilteredOrders.Count,
+                TotalCount =FilteredOrders.Count(),
                 PageNumber = filter.PageNumber,
                 PageSize = filter.PageSize,
             };
+        }
+        private IQueryable<Order> ApplySort(IQueryable<Order> query, OrderFilterDto filter)
+        {
+            switch (filter.Sortby?.ToLower())
+            {
+                case "totalprice":
+                    return
+                    (filter.IsDescending) ?
+                    query.OrderByDescending(x => x.TotalPrice) :
+                    query.OrderBy(p => p.TotalPrice);
+                case "quantity":
+                    return
+                    (filter.IsDescending) ?
+                  query.OrderByDescending(x => x.TotalQuintiy) :
+                  query.OrderBy(p => p.TotalQuintiy);
+
+                case "date":
+                    return
+                    (filter.IsDescending) ?
+                    query.OrderByDescending(x => x.OrderDate) :
+                    query.OrderBy(p => p.OrderDate);
+                default: return query.OrderBy(x => x.OrderDate);
+            }
         }
     }
 }

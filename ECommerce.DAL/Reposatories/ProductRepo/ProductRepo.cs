@@ -52,6 +52,7 @@ namespace ECommerce.DAL.Reposatories.ProductRepo
             {
                 query = query.Where(p => p.QuntityInStock <=filter.MaxQuantity);
             }
+            query = ApplySort(query, filter);
             
             var TotalCount = await query.CountAsync();
             var products = await query.Skip(filter.PageSize * (filter.PageNumber - 1))
@@ -64,6 +65,34 @@ namespace ECommerce.DAL.Reposatories.ProductRepo
                 PageNumber = filter.PageNumber,
                 PageSize = filter.PageSize,
             };
+        }
+
+        private IQueryable<Product> ApplySort(IQueryable<Product> query, ProductFilterDto filter)
+        {
+            switch (filter.Sortby?.ToLower())
+            {
+                case "price": return 
+                    (filter.IsDescending) ?
+                    query.OrderByDescending(x => x.Price) :
+                    query.OrderBy(p => p.Price);
+                case "name":
+                    return
+                    (filter.IsDescending) ?
+                  query.OrderByDescending(x => x.Name) :
+                  query.OrderBy(p => p.Name);
+
+                case "quntity":
+                    return
+                    (filter.IsDescending) ?
+                    query.OrderByDescending(x => x.QuntityInStock) :
+                    query.OrderBy(p => p.QuntityInStock);
+                case "date":
+                    return
+                    (filter.IsDescending) ?
+                    query.OrderByDescending(x => x.CreatedAt) :
+                    query.OrderBy(p => p.CreatedAt);
+                default: return query.OrderBy(x=>x.CreatedAt);     
+            }
         }
     }
 }
