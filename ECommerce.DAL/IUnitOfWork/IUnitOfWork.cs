@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ECommerce.DAL.Models;
+using ECommerce.DAL.Reposatories.CartItemsRepo;
+using ECommerce.DAL.Reposatories.CartRepo;
 using ECommerce.DAL.Reposatories.CustomerRepo;
 using ECommerce.DAL.Reposatories.GenericRepo;
 
@@ -11,9 +13,10 @@ namespace ECommerce.DAL.IUnitOfWork
 {
     public interface IUnitOfWork : IDisposable
     {
+        ICartItemstRepo CarItemstRepo { get; }
         IGenericRepo<Product> ProductsRepo { get; }
         IGenericRepo<Order>OrdersRepo { get; }
-        IGenericRepo <Cart> CartsRepo { get; }
+        ICartRepo  CartsRepo { get; }
         ICustomerRepo CustomersRepo { get; }
          Task<int> SaveChangesAsync();
         Task BeginTransaction();

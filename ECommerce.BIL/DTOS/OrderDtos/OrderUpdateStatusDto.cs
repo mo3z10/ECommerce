@@ -9,6 +9,7 @@ namespace ECommerce.BIL.DTOS.OrderDtos
 {
     public class OrderUpdateStatusDto
     {
+        public int OrderId { get; set; }
         public OrderStatus Status { get; set; }
     }
 }

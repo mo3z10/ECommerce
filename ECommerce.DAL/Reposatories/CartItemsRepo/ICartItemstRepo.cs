@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 using ECommerce.DAL.Models;
 using ECommerce.DAL.Reposatories.GenericRepo;
 
-namespace ECommerce.DAL.Reposatories.CartRepo
+namespace ECommerce.DAL.Reposatories.CartItemsRepo
 {
-    public interface ICartRepo:IGenericRepo<Cart>
+    public interface ICartItemstRepo : IGenericRepo<CartItem>
     {
-        Task ClearCartAsync(int cartId);
     }
 }

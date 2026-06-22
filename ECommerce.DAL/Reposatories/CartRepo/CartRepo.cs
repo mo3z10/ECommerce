@@ -7,6 +7,7 @@ using ECommerce.DAL.Database;
 using ECommerce.DAL.Models;
 using ECommerce.DAL.Reposatories.GenericRepo;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.DAL.Reposatories.CartRepo
 {
@@ -20,5 +21,11 @@ namespace ECommerce.DAL.Reposatories.CartRepo
             _context = eCommerceContext;
         }
 
+        public async Task ClearCartAsync(int cartId)
+        {
+            await _context.CartItem
+                .Where(x => x.CartId == cartId)
+                .ExecuteDeleteAsync();
+        }
     }
 }

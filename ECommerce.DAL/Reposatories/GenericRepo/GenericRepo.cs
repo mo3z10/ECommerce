@@ -45,10 +45,7 @@ namespace ECommerce.DAL.Reposatories.GenericRepo
             EF.Property<int>(e, "Id") == id));
 
         }
-        public Task SoftDelete()
-        {
-            return Task.CompletedTask;
-        }
+
 
         public Task UpdateAsync(TEntity entity)
         {

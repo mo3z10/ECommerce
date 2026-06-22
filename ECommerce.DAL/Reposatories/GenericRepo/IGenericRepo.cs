@@ -16,7 +16,6 @@ namespace ECommerce.DAL.Reposatories.GenericRepo
         Task CreateAsync(Tentity TEntity);
         Task UpdateAsync(Tentity TEntity);
         Task DeleteAsync(Tentity tentity);
-        Task SoftDelete();
         Task SetRowVersion(Product product, byte[] rowVersion);
         
     }
