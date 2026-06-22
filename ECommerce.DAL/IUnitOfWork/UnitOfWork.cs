@@ -11,6 +11,8 @@ using ECommerce.DAL.Reposatories.CartItemsRepo;
 using ECommerce.DAL.Reposatories.CartRepo;
 using ECommerce.DAL.Reposatories.CustomerRepo;
 using ECommerce.DAL.Reposatories.GenericRepo;
+using ECommerce.DAL.Reposatories.OrdersRepo;
+using ECommerce.DAL.Reposatories.ProductRepo;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -21,12 +23,14 @@ namespace ECommerce.DAL.IUnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
-       public IGenericRepo<Product> ProductsRepo { get; }
-       public IGenericRepo<Order> OrdersRepo { get; }
        public ICartRepo CartsRepo { get; }
        public ICustomerRepo  CustomersRepo { get; }
 
         public ICartItemstRepo CarItemstRepo { get; }
+
+        public IProductRepo ProductsRepo {  get; }
+
+        public IOrderRepo OrdersRepo { get; }
 
         private readonly ECommerceContext _context;
         private IDbContextTransaction? _Transaction;
@@ -36,8 +40,8 @@ namespace ECommerce.DAL.IUnitOfWork
             CarItemstRepo = new CartItemstRepo(eCommerceContext, httpContextAccessor);
             _httpContextAccessor = httpContextAccessor;
             _context = eCommerceContext;
-            ProductsRepo = new GenericRepo<Product>(eCommerceContext,httpContextAccessor);
-            OrdersRepo = new GenericRepo<Order>(eCommerceContext, httpContextAccessor);
+            ProductsRepo = new ProductRepo(eCommerceContext,httpContextAccessor);
+            OrdersRepo = new OrderRepo(eCommerceContext, httpContextAccessor);
             CartsRepo = new CartRepo(eCommerceContext, httpContextAccessor);
             CustomersRepo = new CustomerRepo(eCommerceContext, httpContextAccessor);
         }
