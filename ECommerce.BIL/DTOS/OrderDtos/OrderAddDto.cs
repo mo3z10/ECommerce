@@ -8,8 +8,7 @@ namespace ECommerce.BIL.DTOS.OrderDtos
 {
     public class OrderAddDto
     {
-        public int CustomerId { get; set; }
-        public ICollection<CreateOrderItemDto> Items { get; set; }
+        public string UserId { get; set; }
 
     }
 }

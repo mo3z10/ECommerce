@@ -11,11 +11,11 @@ namespace ECommerce.DAL.Models
     {
         public  int CustomerId { get; set; }
         public virtual Customer Customer { get; set; }
-        public double TotalPrice { get; set; }
+        public double TotalPrice { get; set; } = 0;
         public OrderStatus OrderStatus { get; set; }
        
         public DateTime OrderDate { get; set; } = DateTime.Now;
-        public int TotalQuintiy { get; set; }
+        public int TotalQuintiy { get; set; } = 0;
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
     }

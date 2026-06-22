@@ -36,33 +36,52 @@ namespace ECommerce.BIL.Services.CartService
             if (product == null)
                 throw new KeyNotFoundException("ProductNotFound");
 
-
-            cart.cartItems.Add(new CartItem
+            var existingItem = cart.cartItems
+        .FirstOrDefault(x => x.ProductId == dto.ProductId);
+            if (existingItem != null)
             {
-                CartId = cart.Id,
-                ProductId = dto.ProductId,
-                Quantity = dto.Quaintity
-            });
+                var newQuantity = existingItem.Quantity + dto.Quaintity;
+                if (newQuantity > product.QuntityInStock)
+                {
+                    throw new Exception(
+                        $"Quantity isn't available. Only {product.QuntityInStock} from {product.Name}"
+                    );
+                }
+                existingItem.Quantity = newQuantity;
+            }
+            else
+            {
+                if (dto.Quaintity > product.QuntityInStock)
+                {
+                    throw new Exception($"Quantity Isn't Avaialble  only {product.QuntityInStock} from {product.Name}");
 
+                }
+                var Item = new CartItem
+                {
+                    CartId = cart.Id,
+                    ProductId = dto.ProductId,
+                    Quantity = dto.Quaintity
+                };
 
+                cart.cartItems.Add(Item);
+            }
             await _unitOfWork.SaveChangesAsync();
         }
 
 
-        public async Task ClearCart(string userId)
+  
+            public async Task ClearCart(string userId)
         {
-            var cusomer = await _unitOfWork.CustomersRepo.GetByUserIdAsync(userId);
-            if(cusomer == null)
-            {
-                throw new KeyNotFoundException("CustomerNotFound");
-            }
-            var Cart = cusomer.cart;
-            if (Cart == null)
-            {
+            var customer = await _unitOfWork.CustomersRepo.GetByUserIdAsync(userId);
 
+            if (customer == null)
+                throw new KeyNotFoundException("CustomerNotFound");
+
+            if (customer.cart == null)
                 throw new KeyNotFoundException("CartNotFound");
-            }
-            Cart.cartItems?.Clear();
+
+            await _unitOfWork.CartsRepo.ClearCartAsync(customer.cart.Id);
+
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -124,7 +143,7 @@ namespace ECommerce.BIL.Services.CartService
             {
                 throw new KeyNotFoundException("CartNotFound");
             }
-            var customerName = cart.Customer?.UserName;
+            var customerName = cart.Customer.UserName;
 
             var CartModel = new CartReadDto()
             {
@@ -167,35 +186,44 @@ namespace ECommerce.BIL.Services.CartService
         {
             var customer = await _unitOfWork.CustomersRepo.GetByUserIdAsync(userId);
 
-            if (customer == null || customer.cart == null)
+            if (customer == null )
+            {
+                throw new KeyNotFoundException("CustomerNotFound");
+            }
+            if( customer.cart == null)
             {
                 throw new KeyNotFoundException("CartNotFound");
             }
 
-
-            var cartItem = customer.cart.cartItems?
+            var cartItem = customer.cart.cartItems
                 .FirstOrDefault(x => x.ProductId == dto.ProductId);
+
 
 
             if (cartItem == null)
             {
                 throw new KeyNotFoundException("CartItemNotFound");
             }
-
-
-            if (dto.Quantity <= 0)
+            await _unitOfWork.BeginTransaction();
+            try
             {
-                customer.cart.cartItems.Remove(cartItem);
 
-                await _unitOfWork.SaveChangesAsync();
-                return;
+                if (dto.Quantity <= 0)
+                {
+                    customer.cart.cartItems.Remove(cartItem);
+
+                }
+
+
+                cartItem.Quantity = dto.Quantity;
+                await _unitOfWork.Commit();
+
             }
-
-
-            cartItem.Quantity = dto.Quantity;
-
-            await _unitOfWork.SaveChangesAsync();
-        }
+            catch
+            {
+                await _unitOfWork.Rollback();
+            }
+            }
         public async Task<CartReadDto?> GetMyCartAsync(string userId)
         {
             var customer = await _unitOfWork.CustomersRepo.GetByUserIdAsync(userId);

@@ -39,8 +39,17 @@ namespace ECommerce.BIL.Services.ProductService
         public async Task DeleteProductAsync(int Id)
         {
             var Product = await _unitOfWork.ProductsRepo.GetByIdAsync(Id);
+            if (Product == null)
+            {
+                throw new KeyNotFoundException("ProductNotFound");
+            }
             Product.IsDeleted = true;
-            await _unitOfWork.ProductsRepo.SoftDelete();
+            var Cartitems = Product.CartItems;
+            foreach(var item in Cartitems)
+            {
+               await _unitOfWork.CarItemstRepo.DeleteAsync(item);
+            }
+            await _unitOfWork.ProductsRepo.DeleteAsync(Product);
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -78,12 +87,10 @@ namespace ECommerce.BIL.Services.ProductService
                 InStock = product.InStock,
                 Price = product.Price,
                 Name = product.Name,
+                QuantityInStock = product.QuntityInStock,
                 RowVersion = product.RowVersion
             };
-            if (product.QuntityInStock < 10)
-            {
-                ProductModel.QuantityInStock  = product.QuntityInStock;
-            }
+
             return ProductModel;
         }
 

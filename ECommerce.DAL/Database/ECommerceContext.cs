@@ -39,5 +39,12 @@ namespace ECommerce.DAL.Database
 
         }
         public DbSet<Customer> Customers { get; set; }
+        public DbSet<Cart> Cart { get; set; }
+        public DbSet<Order> Order { get; set; }
+        public DbSet<Product> Product { get; set; }  
+        public DbSet<CartItem> CartItem{ get; set; }
+        public DbSet<OrderItem> OrderItem { get; set; }
+
+
     }
 }
