@@ -341,7 +341,7 @@ This project is continuously evolving to explore:
 
 ---
 
-## 👨‍💻 Author
+##  Author
 
 ### Moaz Yasser
 
@@ -353,6 +353,7 @@ Backend .NET Developer
 - ASP.NET Core
 - Entity Framework Core
 - SQL Server
+- Operating System
 - REST APIs
 - Authentication & Authorization
 - Design Patterns
@@ -360,4 +361,4 @@ Backend .NET Developer
 
 ---
 
-⭐ This project is being developed as a practical learning journey toward building production-ready backend systems using the .NET ecosystem.
+ This project is being developed as a practical learning journey toward building production-ready backend systems using the .NET ecosystem.
