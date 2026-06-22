@@ -15,6 +15,8 @@ namespace ECommerce.DAL.PaginationFilterDtos
         public int? MaxQuaintiy {  get; set; }
         public int? MinQuaintiy {  get; set; }
         public string orderStatus { get; set; } = "";
-        
+        public string? Sortby { get; set; }
+        public bool IsDescending { get; set; } = false;
+
     }
 }

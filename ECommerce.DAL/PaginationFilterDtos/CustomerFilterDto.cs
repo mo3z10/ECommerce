@@ -12,5 +12,8 @@ namespace ECommerce.DAL.PaginationFilterDtos
         public string SearchEmail { get; set; } = "";
         public string SearchPhone { get; set; } = "";
         public string SearchAddress { get; set; } = "";
+        public string? Sortby { get; set; }
+        public bool IsDescending { get; set; } = false;
     }
 }
+
