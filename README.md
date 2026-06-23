@@ -1,10 +1,10 @@
-# 🛒 E-Commerce Backend API
+#  E-Commerce Backend API
 
 A scalable E-Commerce Backend built with **ASP.NET Core Web API**, **Entity Framework Core**, and **SQL Server** following modern backend development practices and design patterns.
 
 ---
 
-## 🚀 Features
+##  Features
 
 ### Authentication & Authorization
 
@@ -68,7 +68,7 @@ A scalable E-Commerce Backend built with **ASP.NET Core Web API**, **Entity Fram
 
 ---
 
-## 🔎 Advanced Query Features
+##  Advanced Query Features
 
 ### Pagination
 
@@ -134,27 +134,44 @@ Deleted records remain in the database but are hidden from normal users.
 Administrators can access soft-deleted records when needed.
 
 ---
+##  Caching
 
-## 📝 Audit Logging
+Implemented using Redis Distributed Cache to improve performance and reduce database load.
 
-Every entity inherits from BaseEntity and stores:
+Features:
 
-```csharp
-CreatedAt
-CreatedBy
+Redis Integration with ASP.NET Core
+Distributed Caching using IDistributedCache
+Cache Products, Orders, and paginated results
+Cache invalidation using versioning strategy
+Cache expiration policies
+Reduced repeated database queries
+Improved API response performance
 
-UpdatedAt
-UpdatedBy
+Caching strategy:
 
-DeletedAt
-DeletedBy
-```
+Request
+   |
+Check Redis Cache
+   |
+Cache Exists
+   |
+Return Cached Data
 
-This provides complete tracking of data changes.
+Cache Miss
+   |
+Load From Database
+   |
+Store In Redis
+   |
+Return Data
 
----
 
-## 🔄 Transaction Management
+
+
+
+
+## Transaction Management
 
 The checkout process uses database transactions to ensure data consistency.
 
@@ -182,7 +199,7 @@ All changes are reverted automatically.
 
 ---
 
-## ⚡ Concurrency Handling
+##  Concurrency Handling
 
 Implemented using EF Core RowVersion.
 
@@ -190,7 +207,7 @@ Prevents users from overwriting data that has already been modified by another u
 
 ---
 
-## 🏗 Design Patterns Used
+## Design Patterns Used
 
 ### Generic Repository Pattern
 
@@ -210,7 +227,7 @@ Separates API contracts from database entities.
 
 ---
 
-## 🔐 Security
+##  Security
 
 - JWT Authentication
 - Role-Based Authorization
@@ -220,7 +237,7 @@ Separates API contracts from database entities.
 
 ---
 
-## 🛠 Technologies Used
+##  Technologies Used
 
 - ASP.NET Core Web API
 - Entity Framework Core
@@ -233,7 +250,7 @@ Separates API contracts from database entities.
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```text
 ECommerce.Api
@@ -257,7 +274,7 @@ ECommerce.DAL
 
 ---
 
-## ✅ Implemented Features
+## Implemented Features
 
 - JWT Authentication
 - Role-Based Authorization
@@ -283,7 +300,7 @@ ECommerce.DAL
 
 ---
 
-## 🎯 Future Improvements
+##  Future Improvements
 
 ### Real-Time Notifications
 
@@ -298,12 +315,6 @@ Using SignalR for:
 - Stripe Integration
 - Secure Checkout Process
 - Payment Verification
-
-### Caching
-
-- Redis Caching
-- Faster Product Retrieval
-- Reduced Database Load
 
 ### Cloud Deployment
 
@@ -328,7 +339,7 @@ Using SignalR for:
 
 ---
 
-## 📈 Learning Goals
+##  Learning Goals
 
 This project is continuously evolving to explore:
 
