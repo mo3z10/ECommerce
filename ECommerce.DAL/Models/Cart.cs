@@ -11,6 +11,7 @@ namespace ECommerce.DAL.Models
         public int CustomerID { get; set; }
         public virtual Customer Customer { get; set; } = null!;
         public virtual ICollection<CartItem> cartItems { get; set; } = new List<CartItem>();
+        public DateTime LastActitvity { set; get; } = DateTime.UtcNow;
 
     }
 }

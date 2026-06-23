@@ -27,5 +27,12 @@ namespace ECommerce.DAL.Reposatories.CartRepo
                 .Where(x => x.CartId == cartId)
                 .ExecuteDeleteAsync();
         }
+        public async Task<List<Cart>> GetAbandonedCartsAsync(DateTime cutoffDate)
+        {
+            return await _context.Cart
+                .Where(c => c.UpdatedAt < cutoffDate)
+                .ToListAsync();
+        }
+
     }
 }

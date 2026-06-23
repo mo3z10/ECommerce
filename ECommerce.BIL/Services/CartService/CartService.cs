@@ -65,7 +65,9 @@ namespace ECommerce.BIL.Services.CartService
 
                 cart.cartItems.Add(Item);
             }
+            cart.LastActitvity = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();
+            
         }
 
 
@@ -79,9 +81,8 @@ namespace ECommerce.BIL.Services.CartService
 
             if (customer.cart == null)
                 throw new KeyNotFoundException("CartNotFound");
-
+            customer.cart.LastActitvity = DateTime.UtcNow;
             await _unitOfWork.CartsRepo.ClearCartAsync(customer.cart.Id);
-
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -177,7 +178,7 @@ namespace ECommerce.BIL.Services.CartService
 
 
             customer.cart.cartItems.Remove(item);
-
+            customer.cart.LastActitvity = DateTime.UtcNow;
 
             await _unitOfWork.SaveChangesAsync();
         }
@@ -213,9 +214,12 @@ namespace ECommerce.BIL.Services.CartService
                     customer.cart.cartItems.Remove(cartItem);
 
                 }
+                else {
+                    cartItem.Quantity = dto.Quantity;
+                }
 
 
-                cartItem.Quantity = dto.Quantity;
+                customer.cart.LastActitvity = DateTime.UtcNow;
                 await _unitOfWork.Commit();
 
             }

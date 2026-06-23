@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ECommerce.BIL.DTOS.AuthenticationDtos.AuthDtos;
 using ECommerce.BIL.DTOS.AuthenticationDtos.EmailServicesDtos;
+using ECommerce.BIL.Services.JobSercvices;
 using ECommerce.DAL.IUnitOfWork;
 using ECommerce.DAL.Models;
 using Microsoft.AspNetCore.Http;
@@ -29,10 +30,9 @@ namespace ECommerce.BIL.Services.AuthenicationServices
         private readonly UserManager<ApplicationUser> _usermanager;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IEmailService _EmailService;
+        private readonly IJobService _JobService;
 
-
-
-        public AuthService(IConfiguration configuration,RoleManager<IdentityRole> RoleManager, UserManager<ApplicationUser> usermanager,IHttpContextAccessor httpContextAccessor,IEmailService emailService,IUnitOfWork unitOfWork)
+        public AuthService(IConfiguration configuration,RoleManager<IdentityRole> RoleManager, UserManager<ApplicationUser> usermanager,IHttpContextAccessor httpContextAccessor,IEmailService emailService,IUnitOfWork unitOfWork,IJobService jobService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
@@ -40,6 +40,7 @@ namespace ECommerce.BIL.Services.AuthenicationServices
             _RoleManager=RoleManager;
             _httpContextAccessor=httpContextAccessor;
             _EmailService=emailService;
+            _JobService =jobService;
         }
 
         public async Task<string> AssignRoleToAsync(AssignRoleDto assignRoleDto)
@@ -228,6 +229,7 @@ namespace ECommerce.BIL.Services.AuthenicationServices
             if (result.Succeeded)
             {
                 await _usermanager.AddToRoleAsync(user, "Customer");
+                _JobService.ApplyWelcomeEmail(user.Email);
             }
 
 
