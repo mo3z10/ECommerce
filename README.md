@@ -1,76 +1,182 @@
 #  E-Commerce Backend API
 
-A scalable E-Commerce Backend built with **ASP.NET Core Web API**, **Entity Framework Core**, and **SQL Server** following modern backend development practices and design patterns.
+A scalable E-Commerce Backend built with **ASP.NET Core Web API**, **Entity Framework Core**, **SQL Server**, following modern backend development practices and design patterns.
 
 ---
 
-##  Features
+#  Features
 
-### Authentication & Authorization
+## Authentication & Authorization
 
-- User Registration
-- User Login
-- JWT Authentication
-- Role-Based Authorization
-- Admin & Customer Roles
-- Protected Endpoints
-
----
-
-### Product Management
-
-- Create Product
-- Update Product
-- Delete Product (Soft Delete)
-- Get Product By Id
-- Get All Products
-- Inventory Management
-- Optimistic Concurrency Control using RowVersion
+* User Registration
+* User Login
+* JWT Authentication
+* Role-Based Authorization
+* Admin & Customer Roles
+* Protected Endpoints
 
 ---
 
-### Customer Management
+# Product Management
 
-- Customer Registration
-- Customer Profile Retrieval
-- Customer Order History
-
----
-
-### Shopping Cart
-
-- Add Item To Cart
-- Remove Item From Cart
-- Update Item Quantity
-- Clear Cart
-- Get Customer Cart
-- Get All Carts (Admin)
+* Create Product
+* Update Product
+* Delete Product (Soft Delete)
+* Get Product By Id
+* Get All Products
+* Inventory Management
+* Optimistic Concurrency Control using RowVersion
 
 ---
 
-### Order Management
+# Customer Management
 
-- Checkout Process
-- Create Orders From Cart
-- Order Status Tracking
-- Get Customer Orders
-- Get All Orders
-- Update Order Status
+* Customer Registration
+* Customer Profile Retrieval
+* Customer Order History
 
 ---
 
-### Inventory Management
+# Shopping Cart
 
-- Automatic Stock Validation
-- Automatic Stock Reduction After Checkout
-- Prevent Ordering More Than Available Stock
-- Automatic InStock Status Updates
+* Add Item To Cart
+* Remove Item From Cart
+* Update Item Quantity
+* Clear Cart
+* Get Customer Cart
+* Get All Carts (Admin)
 
 ---
 
-##  Advanced Query Features
+# Order Management
 
-### Pagination
+* Checkout Process
+* Create Orders From Cart
+* Order Status Tracking
+* Get Customer Orders
+* Get All Orders
+* Update Order Status
+
+---
+
+# Inventory Management
+
+* Automatic Stock Validation
+* Automatic Stock Reduction After Checkout
+* Prevent Ordering More Than Available Stock
+* Automatic InStock Status Updates
+* Low Stock Detection System
+
+---
+
+#  Background Processing (Hangfire)
+
+Implemented using **Hangfire** for reliable background and scheduled task execution.
+
+Features:
+
+* Background job processing
+* Recurring scheduled jobs
+* Email processing in background
+* Automated maintenance tasks
+---
+
+## Implemented Hangfire Jobs
+
+### Order Confirmation Email
+
+After successful checkout:
+
+```
+Customer Checkout
+        |
+        |
+Create Order
+        |
+        |
+Hangfire Background Job
+        |
+        |
+Send Confirmation Email
+```
+
+The API does not wait for email sending.
+The email is processed asynchronously in the background.
+
+---
+
+### Order Status Notification
+
+When admin updates order status:
+
+```
+Update Order Status
+        |
+        |
+Create Background Job
+        |
+        |
+Send Status Update Email
+```
+
+Customers receive notifications when their order status changes.
+
+---
+
+### Abandoned Cart Cleanup
+
+Recurring job to remove unused carts.
+
+Example:
+
+```
+Every Day
+    |
+    |
+Find carts with old activity
+    |
+    |
+Remove abandoned cart items
+```
+
+---
+
+### Low Stock Inventory Notification
+
+Recurring inventory monitoring:
+
+```
+Daily Job
+    |
+    |
+Check Product Quantity
+    |
+    |
+Find Low Stock Products
+    |
+    |
+Send Admin Notification Email
+```
+
+---
+
+### Hangfire Dashboard
+
+Added Hangfire monitoring dashboard:
+
+Features:
+
+* View running jobs
+* View failed jobs
+* View scheduled jobs
+* Retry failed jobs
+* Monitor background processing
+
+---
+
+#  Advanced Query Features
+
+## Pagination
 
 Supports efficient retrieval of large datasets.
 
@@ -80,7 +186,9 @@ Example:
 GET /api/products?pageNumber=1&pageSize=10
 ```
 
-### Searching
+---
+
+## Searching
 
 Supports searching products by name.
 
@@ -90,13 +198,15 @@ Example:
 GET /api/products?search=ball
 ```
 
-### Filtering
+---
 
-Supports filtering by:
+## Filtering
 
-- Price Range
-- Stock Availability
-- Order Status
+Supports:
+
+* Price Range
+* Stock Availability
+* Order Status
 
 Example:
 
@@ -104,14 +214,16 @@ Example:
 GET /api/products?minPrice=50&maxPrice=500
 ```
 
-### Sorting
+---
+
+## Sorting
 
 Supports sorting by:
 
-- Name
-- Price
-- Quantity
-- Date
+* Name
+* Price
+* Quantity
+* Date
 
 Example:
 
@@ -121,63 +233,70 @@ GET /api/products?sortBy=price&descending=true
 
 ---
 
-## 🗑 Soft Delete System
+# 🗑 Soft Delete System
 
 Implemented using:
 
-- IsDeleted Flag
-- Global Query Filters
-- Audit Tracking
+* IsDeleted Flag
+* Global Query Filters
+* Audit Tracking
 
-Deleted records remain in the database but are hidden from normal users.
+Deleted records remain in database but are hidden from normal users.
 
 Administrators can access soft-deleted records when needed.
 
 ---
-##  Caching
 
-Implemented using Redis Distributed Cache to improve performance and reduce database load.
+#  Redis Distributed Caching
+
+Implemented using **Redis Distributed Cache** to improve performance and reduce database load.
 
 Features:
 
-Redis Integration with ASP.NET Core
-Distributed Caching using IDistributedCache
-Cache Products, Orders, and paginated results
-Cache invalidation using versioning strategy
-Cache expiration policies
-Reduced repeated database queries
-Improved API response performance
+* Redis Integration with ASP.NET Core
+* Distributed caching using IDistributedCache
+* Cache Products
+* Cache Orders
+* Cache Paginated Results
+* Cache expiration policies
+* Cache invalidation using versioning strategy
 
-Caching strategy:
+Caching flow:
 
+```
 Request
-   |
+    |
+    |
 Check Redis Cache
-   |
-Cache Exists
-   |
+    |
+    |
+Cache Exists?
+    |
+    |
 Return Cached Data
 
+
 Cache Miss
-   |
+    |
+    |
 Load From Database
-   |
+    |
+    |
 Store In Redis
-   |
+    |
+    |
 Return Data
+```
 
+---
 
+# Transaction Management
 
-
-
-
-## Transaction Management
-
-The checkout process uses database transactions to ensure data consistency.
+Checkout process uses database transactions.
 
 Workflow:
 
-```text
+```
 Create Order
 ↓
 Validate Inventory
@@ -191,68 +310,69 @@ Commit Transaction
 
 If any step fails:
 
-```text
+```
 Rollback Transaction
 ```
 
-All changes are reverted automatically.
-
 ---
 
-##  Concurrency Handling
+# Concurrency Handling
 
 Implemented using EF Core RowVersion.
 
-Prevents users from overwriting data that has already been modified by another user.
+Prevents users from overwriting data modified by another user.
 
 ---
 
-## Design Patterns Used
+#  Design Patterns Used
 
-### Generic Repository Pattern
+## Generic Repository Pattern
 
-Provides reusable data access operations across entities.
+Reusable database operations across entities.
 
-### Unit Of Work Pattern
+## Unit Of Work Pattern
 
 Coordinates repositories and manages transactions.
 
-### Dependency Injection
+## Dependency Injection
 
-Used throughout the application for loose coupling and maintainability.
+Used throughout the application.
 
-### DTO Pattern
+## DTO Pattern
 
-Separates API contracts from database entities.
-
----
-
-##  Security
-
-- JWT Authentication
-- Role-Based Authorization
-- ASP.NET Identity
-- Protected Endpoints
-- Secure Password Hashing
+Separates API models from database entities.
 
 ---
 
-##  Technologies Used
+#  Security
 
-- ASP.NET Core Web API
-- Entity Framework Core
-- SQL Server
-- ASP.NET Identity
-- JWT Bearer Authentication
-- LINQ
-- Swagger / OpenAPI
-- C#
+* JWT Authentication
+* Role-Based Authorization
+* ASP.NET Identity
+* Protected Endpoints
+* Secure Password Hashing
 
 ---
 
-##  Project Structure
+# 🛠 Technologies Used
 
-```text
+* ASP.NET Core Web API
+* Entity Framework Core
+* SQL Server
+* ASP.NET Identity
+* JWT Bearer Authentication
+* Redis Distributed Cache
+* Hangfire Background Processing
+* MailKit Email Service
+* LINQ
+* Swagger / OpenAPI
+* C#
+
+---
+
+#  Project Structure
+
+```
 ECommerce.Api
 │
 ├── Controllers
@@ -262,6 +382,7 @@ ECommerce.BIL
 │
 ├── Services
 ├── DTOs
+├── Background Jobs
 │
 ECommerce.DAL
 │
@@ -274,102 +395,108 @@ ECommerce.DAL
 
 ---
 
-## Implemented Features
+#  Implemented Features
 
-- JWT Authentication
-- Role-Based Authorization
-- ASP.NET Identity
-- Generic Repository Pattern
-- Unit Of Work Pattern
-- DTO Pattern
-- Soft Delete
-- Global Query Filters
-- Audit Logging
-- Optimistic Concurrency (RowVersion)
-- Transactions
-- Product Management
-- Customer Management
-- Cart Management
-- Order Management
-- Inventory Validation
-- Checkout Workflow
-- Pagination
-- Searching
-- Filtering
-- Sorting
-
----
-
-##  Future Improvements
-
-### Real-Time Notifications
-
-Using SignalR for:
-
-- Order Status Updates
-- Stock Updates
-- Real-Time User Notifications
-
-### Payment Integration
-
-- Stripe Integration
-- Secure Checkout Process
-- Payment Verification
-
-### Cloud Deployment
-
-- Azure App Service
-- Azure SQL Database
-- Azure Storage
-- Production Hosting
-
-### DevOps
-
-- Docker
-- CI/CD Pipelines
-- GitHub Actions
-
-### Additional Features
-
-- Wishlist System
-- Product Reviews & Ratings
-- Email Notifications
-- Refresh Tokens
-- Advanced Reporting Dashboard
+* JWT Authentication
+* Role-Based Authorization
+* ASP.NET Identity
+* Generic Repository Pattern
+* Unit Of Work Pattern
+* DTO Pattern
+* Soft Delete
+* Global Query Filters
+* Audit Logging
+* Optimistic Concurrency (RowVersion)
+* Transactions
+* Product Management
+* Customer Management
+* Cart Management
+* Order Management
+* Inventory Validation
+* Checkout Workflow
+* Pagination
+* Searching
+* Filtering
+* Sorting
+* Redis Distributed Caching
+* Hangfire Background Jobs
+* Email Notifications
+* Scheduled Maintenance Tasks
 
 ---
 
-##  Learning Goals
+#  Future Improvements
 
-This project is continuously evolving to explore:
+## Real-Time Notifications
 
-- Advanced ASP.NET Core Features
-- Distributed Systems Concepts
-- Cloud Computing
-- Real-Time Applications
-- Scalable Backend Architectures
-- Production Deployment Strategies
+Using SignalR:
+
+* Order Status Updates
+* Stock Updates
+* Real-Time Notifications
+
+## Payment Integration
+
+* Stripe Integration
+* Secure Checkout
+* Payment Verification
+
+## Cloud Deployment
+
+* Azure App Service
+* Azure SQL Database
+* Azure Storage
+* Production Hosting
+
+## DevOps
+
+* Docker
+* CI/CD Pipelines
+* GitHub Actions
+
+## Additional Features
+
+* Wishlist System
+* Product Reviews & Ratings
+* Refresh Tokens
+* Advanced Reporting Dashboard
+* PDF/Excel Sales Reports
 
 ---
 
-##  Author
+#  Learning Goals
 
-### Moaz Yasser
+This project explores:
+
+* Advanced ASP.NET Core Features
+* Distributed Systems Concepts
+* Background Processing
+* Cloud Computing
+* Real-Time Applications
+* Scalable Backend Architectures
+* Production Deployment Strategies
+
+---
+
+# Author
+
+## Moaz Yasser
 
 Backend .NET Developer
 
-**Skills**
+Skills:
 
-- C#
-- ASP.NET Core
-- Entity Framework Core
-- SQL Server
-- Operating System
-- REST APIs
-- Authentication & Authorization
-- Design Patterns
-- Database Design
+* C#
+* ASP.NET Core
+* Entity Framework Core
+* SQL Server
+* Redis
+* Hangfire
+* REST APIs
+* Authentication & Authorization
+* Design Patterns
+* Database Design
 
 ---
 
- This project is being developed as a practical learning journey toward building production-ready backend systems using the .NET ecosystem.
+This project is developed as a practical learning journey for building ready backend systems using the .NET ecosystem.
