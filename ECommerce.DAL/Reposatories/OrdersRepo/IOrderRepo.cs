@@ -12,5 +12,6 @@ namespace ECommerce.DAL.Reposatories.OrdersRepo
     public interface IOrderRepo :IGenericRepo<Order>
     {
         Task<PagedResult<Order>> GetPagedAllAsync(OrderFilterDto filter);
+        Task<PagedResult<Order>> GetCustomerOrders(OrderFilterDto filter, int customerId);
     }
 }

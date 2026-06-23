@@ -23,6 +23,65 @@ namespace ECommerce.DAL.Reposatories.OrdersRepo
             _context = eCommerceContext;
             
         }
+            public async Task<PagedResult<Order>> GetCustomerOrders(OrderFilterDto filter,int customerId)
+        {
+            var ordersQuery = _context.Order
+                .Where(o => o.CustomerId == customerId);
+
+            if (!string.IsNullOrEmpty(filter.SearchCustomer))
+            {
+                ordersQuery = ordersQuery.Where(o =>
+                    o.Customer.UserName.Contains(filter.SearchCustomer));
+            }
+
+            if (filter.minTotalPrice.HasValue)
+            {
+                ordersQuery = ordersQuery.Where(o =>
+                    o.TotalPrice >= filter.minTotalPrice);
+            }
+
+            if (filter.maxTotalPrice.HasValue)
+            {
+                ordersQuery = ordersQuery.Where(o =>
+                    o.TotalPrice <= filter.maxTotalPrice);
+            }
+
+            if (filter.MinQuaintiy.HasValue)
+            {
+                ordersQuery = ordersQuery.Where(o =>
+                    o.TotalQuintiy >= filter.MinQuaintiy);
+            }
+
+            if (filter.MaxQuaintiy.HasValue)
+            {
+                ordersQuery = ordersQuery.Where(o =>
+                    o.TotalQuintiy <= filter.MaxQuaintiy);
+            }
+
+            if (!string.IsNullOrEmpty(filter.orderStatus))
+            {
+                ordersQuery = ordersQuery.Where(o =>
+                    o.OrderStatus.ToString() == filter.orderStatus);
+            }
+
+            ordersQuery = ApplySort(ordersQuery, filter);
+
+            var totalCount = await ordersQuery.CountAsync();
+
+            var items = await ordersQuery
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<Order>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = filter.PageNumber,
+                PageSize = filter.PageSize
+            };
+        }
+
 
         public async Task<PagedResult<Order>> GetPagedAllAsync(OrderFilterDto filter)
         {
@@ -54,7 +113,9 @@ namespace ECommerce.DAL.Reposatories.OrdersRepo
             }
             OrdersQuery = ApplySort(OrdersQuery, filter);
 
-            var FilteredOrders = await OrdersQuery.ToListAsync();
+            var FilteredOrders = await OrdersQuery.Skip((filter.PageNumber -1 )* filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
             return new PagedResult<Order>
             {
                 Items = FilteredOrders,

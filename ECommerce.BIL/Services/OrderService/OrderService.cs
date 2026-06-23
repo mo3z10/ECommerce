@@ -102,35 +102,6 @@ namespace ECommerce.BIL.Services.OrderService
             }
             await _unitOfWork.OrdersRepo.DeleteAsync(Order);
         }
-
-        public async Task<ICollection<OrderReadDto>> GetAllOrdersAsync()
-        {
-            var Orders = await _unitOfWork.OrdersRepo.GetAllAsync();
-            var OrderModel = Orders.Select(o => new OrderReadDto()
-            {
-                Id = o.Id,
-                CustomerId = o.CustomerId,
-                CustomerName = o.Customer.UserName,
-                totalPrice = o.TotalPrice,
-                totalQuantity = o.TotalQuintiy,
-                OrderStatus = o.OrderStatus.ToString(),
-                Items = o.OrderItems.Select(i => new ReadOrderItemDto()
-                {
-                    ItemId = i.ProductId,
-
-                    ItemName = i.Product.Name,
-
-                    ItemUnitPrice = i.Price,
-
-                    ItemQuantity = i.Quantity,
-
-                    ItemTotalPrice = i.Price * i.Quantity
-
-                }).ToList()
-            }).ToList();
-            return OrderModel;
-        }
-
         public async Task<PagedResult<OrderReadDto>> GetAllOrdersAsync(OrderFilterDto orderFilterDto)
         {
             var Orders = await _unitOfWork.OrdersRepo.GetPagedAllAsync(orderFilterDto);
@@ -168,7 +139,7 @@ namespace ECommerce.BIL.Services.OrderService
 
         }
 
-        public async Task<ICollection<OrderReadDto>> GetCustomerOrderAsync(string CustomerId)
+        public async Task<PagedResult<OrderReadDto>> GetCustomerOrderAsync(string CustomerId,OrderFilterDto orderFilterDto)
         {
             var Customer = await _unitOfWork.CustomersRepo.GetByUserIdAsync(CustomerId);
             if (Customer == null)
@@ -176,7 +147,13 @@ namespace ECommerce.BIL.Services.OrderService
                 {
                 throw new KeyNotFoundException("CustomerNotFound");
                 }
-            var CustomerOrders = Customer.orders?.Select(o => new OrderReadDto()
+            var CustomerOrders = await _unitOfWork.OrdersRepo.GetCustomerOrders(orderFilterDto, Customer.Id);
+            if (CustomerOrders == null)
+            {
+                throw new Exception("NoOrders");
+            }
+
+            var CustomerPagedOrders = CustomerOrders.Items.Select(o => new OrderReadDto()
             {
                 CustomerId = o.CustomerId,
                 CustomerName = o.Customer.UserName,
@@ -198,10 +175,14 @@ namespace ECommerce.BIL.Services.OrderService
 
                 }).ToList()
             }).ToList();
-            if (CustomerOrders==null) {
-                throw new Exception("NoOrders");
-            }
-            return CustomerOrders;
+
+            return new PagedResult<OrderReadDto>
+            {
+                Items = CustomerPagedOrders,
+                TotalCount = CustomerPagedOrders.Count(),
+                PageNumber =CustomerOrders.PageNumber,
+                PageSize = CustomerOrders.PageSize,
+            };
         }
 
         public async Task<OrderReadDto> GetOrderByIdAsync(int OrderId)

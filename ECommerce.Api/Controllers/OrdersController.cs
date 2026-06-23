@@ -53,11 +53,24 @@ namespace ECommerce.Api.Controllers
 
         [HttpGet("my-orders")]
         [Authorize]
-        public async Task<IActionResult> GetMyOrders()
+        public async Task<IActionResult> GetMyOrders([FromQuery]OrderFilterDto orderFilterDto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return BadRequest();
 
-            var orders = await _orderService.GetCustomerOrderAsync(userId);
+            }
+
+            var orders = await _orderService.GetCustomerOrderAsync(userId,orderFilterDto);
+
+            return Ok(orders);
+        }
+        [HttpGet("Customer{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetCustomerOrders(string id, [FromQuery]OrderFilterDto orderFilterDto)
+        {
+            var orders = await _orderService.GetCustomerOrderAsync(id,orderFilterDto);
 
             return Ok(orders);
         }
