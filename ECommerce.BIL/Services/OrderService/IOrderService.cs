@@ -11,7 +11,7 @@ namespace ECommerce.BIL.Services.OrderService
     public interface IOrderService
     {
         Task<PagedResult<OrderReadDto>> GetAllOrdersAsync(OrderFilterDto orderFilterDto);
-        Task<ICollection<OrderReadDto>> GetCustomerOrderAsync(string CustomerId);
+        Task<PagedResult<OrderReadDto>> GetCustomerOrderAsync(string CustomerId,OrderFilterDto orderFilterDto);
         Task<OrderReadDto> GetOrderByIdAsync(int OrderId);
         Task DeleteOrderAsync(int OrderId);
         Task CreateOrderAsync(OrderAddDto OrderAddDto);
