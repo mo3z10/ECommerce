@@ -14,7 +14,7 @@ namespace ECommerce.DAL.Models
 
         public DateTime? ResetCodeExpire { get; set; }
 
-        public virtual Customer Customer { get; set; }
+        public virtual Customer? Customer { get; set; }
 
 
     }

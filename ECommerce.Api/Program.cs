@@ -4,8 +4,12 @@ using System.Text;
 using ECommerce.Api.SeedData;
 using ECommerce.BIL.Services.AuthenicationServices;
 using ECommerce.BIL.Services.CacheService;
+using ECommerce.BIL.Services.CartJob;
 using ECommerce.BIL.Services.CartService;
 using ECommerce.BIL.Services.CustomerService;
+using ECommerce.BIL.Services.EmailServices;
+using ECommerce.BIL.Services.InventoryJob;
+using ECommerce.BIL.Services.JobSercvices;
 using ECommerce.BIL.Services.OrderService;
 using ECommerce.BIL.Services.ProductService;
 using ECommerce.DAL.Database;
@@ -16,6 +20,8 @@ using ECommerce.DAL.Reposatories.CartRepo;
 using ECommerce.DAL.Reposatories.CustomerRepo;
 using ECommerce.DAL.Reposatories.GenericRepo;
 using ECommerce.DAL.Reposatories.ProductRepo;
+using Hangfire;
+using MailKit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +54,10 @@ builder.Services.AddScoped<ICartRepo, CartRepo>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddScoped<IJobService, HangfireJopServic>();
+builder.Services.AddScoped<IDefinedMailService,DefinedMailService>();
+builder.Services.AddScoped<ICartJob, CartJob>();
+builder.Services.AddScoped<IInventoryJob,InventoryJob>();
 builder.Services.AddScoped(typeof(IGenericRepo<>), typeof(GenericRepo<>));
 builder.Services.AddMailKit(option =>
 {
@@ -108,14 +118,22 @@ builder.Services.AddStackExchangeRedisCache(options => {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
     }
 );
+builder.Services.AddHangfire(x=>x.UseSqlServerStorage(builder.Configuration.GetConnectionString("cs")));
+builder.Services.AddHangfireServer();
+
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var service = scope.ServiceProvider;
     var UserManager = service.GetRequiredService<UserManager<ApplicationUser>>();
     var RoleManager = service.GetRequiredService<RoleManager<IdentityRole>>();
-    await SeedData.SeedAdmin(UserManager, RoleManager);
+    var Configration = service.GetRequiredService < IConfiguration>();
+    await SeedData.SeedAdmin(UserManager, RoleManager,Configration);
 }
+app.UseHangfireDashboard("/hangfire");
+
+RecurringJob.AddOrUpdate<IJobService>("Clean Up Unused Carts",x => x.CleanupCarts(), cronExpression: Cron.Daily);
+RecurringJob.AddOrUpdate<IJobService>("Low Stock Alert", x => x.LowStockMail(), Cron.Daily);
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -131,5 +149,4 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.Run();

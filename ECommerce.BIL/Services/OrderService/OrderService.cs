@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Castle.Core.Resource;
 using ECommerce.BIL.DTOS.OrderDtos;
 using ECommerce.BIL.Services.CacheService;
+using ECommerce.BIL.Services.JobSercvices;
 using ECommerce.DAL.IUnitOfWork;
 using ECommerce.DAL.Models;
 using ECommerce.DAL.PaginationFilterDtos;
@@ -15,10 +16,12 @@ namespace ECommerce.BIL.Services.OrderService
 {
     public class OrderService : IOrderService
     {
+        private readonly IJobService _jobService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICacheService _cache;
-        public OrderService(IUnitOfWork unitOfWork,ICacheService cache)
+        public OrderService(IUnitOfWork unitOfWork,ICacheService cache,IJobService jobService)
         {
+            _jobService = jobService;
             _cache = cache;
             _unitOfWork = unitOfWork;
             
@@ -37,9 +40,10 @@ namespace ECommerce.BIL.Services.OrderService
             try
             {
 
-                await CreateOrderAsync(OrderAdd);
+               var orderId =  await CreateOrderAsync(OrderAdd);
                 await _unitOfWork.CartsRepo.ClearCartAsync(Customer.cart.Id);
                 await _unitOfWork.Commit();
+                _jobService.ApplyConfirmationOrderEmail(Customer.ApplicationUser.Email,orderId);
                
             }
             catch
@@ -51,7 +55,7 @@ namespace ECommerce.BIL.Services.OrderService
 
         }
 
-        public async Task CreateOrderAsync(OrderAddDto OrderAddDto)
+        public async Task<int> CreateOrderAsync(OrderAddDto OrderAddDto)
         {
             var Customer = await _unitOfWork.CustomersRepo.GetByUserIdAsync(OrderAddDto.UserId);
             if (Customer == null)
@@ -93,9 +97,9 @@ namespace ECommerce.BIL.Services.OrderService
                 item.Product.QuntityInStock -= item.Quantity;
             }
             await _unitOfWork.OrdersRepo.CreateAsync(Order);
-            await _unitOfWork.SaveChangesAsync();
             await _cache.RefreshVersionAsync("orders");
             await _cache.RefreshVersionAsync($"orders{Order.CustomerId}");
+            return Order.Id;
             }
 
         public async Task DeleteOrderAsync(int OrderId)
@@ -257,6 +261,7 @@ $"Customer_orders_{CustomerId}_{version}_{orderFilterDto.PageNumber}_{orderFilte
             }
             order.OrderStatus = orderUpdateStatusDto.Status;
             await _unitOfWork.SaveChangesAsync();
+            _jobService.ApplyOrderStatusEmail(order.Customer.ApplicationUser.Email, order.Id, orderUpdateStatusDto.Status);
             await _cache.RemoveAsync($"order{orderUpdateStatusDto.OrderId}");
             await _cache.RefreshVersionAsync("orders");
             await _cache.RefreshVersionAsync($"orders{order.CustomerId}");        }

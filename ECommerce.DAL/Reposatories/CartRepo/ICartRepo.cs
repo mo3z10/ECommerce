@@ -11,5 +11,6 @@ namespace ECommerce.DAL.Reposatories.CartRepo
     public interface ICartRepo:IGenericRepo<Cart>
     {
         Task ClearCartAsync(int cartId);
+        Task<List<Cart>> GetAbandonedCartsAsync(DateTime cutoffDate);
     }
 }

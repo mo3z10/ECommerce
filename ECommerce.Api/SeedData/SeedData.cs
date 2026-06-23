@@ -5,7 +5,7 @@ namespace ECommerce.Api.SeedData
 {
     public class SeedData
     {
-        public static async Task SeedAdmin(UserManager<ApplicationUser> _UserManager, RoleManager<IdentityRole> _RoleManager)
+        public static async Task SeedAdmin(UserManager<ApplicationUser> _UserManager, RoleManager<IdentityRole> _RoleManager,IConfiguration configuration)
         {
         
             if (!await _RoleManager.RoleExistsAsync("Admin"))
@@ -17,16 +17,18 @@ namespace ECommerce.Api.SeedData
                 };
                 await _RoleManager.CreateAsync(Role);
             }
-            var admin = await _UserManager.FindByEmailAsync("admin@gmail.com");
+            var adminEmail = configuration["Admin:AdminMail"];
+            var adminPassword = configuration["Admin:AdminPassword"];
+            var admin = await _UserManager.FindByEmailAsync(adminEmail);
             if (admin == null)
             {
                 admin = new ApplicationUser()
                 {
-                    UserName = "admin",
-                    Email = "admin@gmail.com",
+                    UserName = "Admin",
+                    Email = adminEmail,
 
                 };
-                await _UserManager.CreateAsync(admin, "Admin#123");
+                await _UserManager.CreateAsync(admin, adminPassword);
             }
             if (!await _UserManager.IsInRoleAsync(admin, "Admin"))
             {

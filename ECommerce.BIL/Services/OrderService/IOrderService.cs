@@ -14,7 +14,7 @@ namespace ECommerce.BIL.Services.OrderService
         Task<PagedResult<OrderReadDto>> GetCustomerOrderAsync(string CustomerId,OrderFilterDto orderFilterDto);
         Task<OrderReadDto> GetOrderByIdAsync(int OrderId);
         Task DeleteOrderAsync(int OrderId);
-        Task CreateOrderAsync(OrderAddDto OrderAddDto);
+        Task<int> CreateOrderAsync(OrderAddDto OrderAddDto);
         Task UpdateOrderStatusAsync(OrderUpdateStatusDto orderUpdateStatusDto);
         Task Checkout(string CustomerId);
 

@@ -66,7 +66,12 @@ namespace ECommerce.DAL.Reposatories.ProductRepo
                 PageSize = filter.PageSize,
             };
         }
-
+        public async Task<List<Product>> GetLowStockProductsAsync(int threshold)
+        {
+            return await _context.Product
+                .Where(x => x.QuntityInStock <= threshold)
+                .ToListAsync();
+        }
         private IQueryable<Product> ApplySort(IQueryable<Product> query, ProductFilterDto filter)
         {
             switch (filter.Sortby?.ToLower())
@@ -94,5 +99,6 @@ namespace ECommerce.DAL.Reposatories.ProductRepo
                 default: return query.OrderBy(x=>x.CreatedAt);     
             }
         }
+
     }
 }
