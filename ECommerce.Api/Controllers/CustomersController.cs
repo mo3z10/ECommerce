@@ -53,7 +53,7 @@ namespace ECommerce.Api.Controllers
             var Customer = await _customerService.GetCustomerByIdAsync(id);
             if (Customer == null)
             {
-                return BadRequest();
+                return NotFound();
             }
             return Ok(Customer);
         }

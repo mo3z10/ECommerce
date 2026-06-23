@@ -9,15 +9,19 @@ using ECommerce.DAL.IUnitOfWork;
 using ECommerce.DAL.Models;
 using ECommerce.DAL.PaginationFilterDtos;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
+using ECommerce.BIL.Services.CacheService;
 
 namespace ECommerce.BIL.Services.ProductService
 {
     public class ProductSerivce : IProductService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public ProductSerivce(IUnitOfWork unitOfWork)
+        private readonly ICacheService _cache;
+        public ProductSerivce(IUnitOfWork unitOfWork, ICacheService cache)
         {
-            
+            _cache = cache;            
             _unitOfWork = unitOfWork;
             
         }
@@ -34,6 +38,7 @@ namespace ECommerce.BIL.Services.ProductService
             };
              await _unitOfWork.ProductsRepo.CreateAsync(Product);
             await _unitOfWork.SaveChangesAsync();
+            await _cache.RefreshVersionAsync("products");
             return Product.Id;
         }
 
@@ -52,12 +57,22 @@ namespace ECommerce.BIL.Services.ProductService
             }
             await _unitOfWork.ProductsRepo.DeleteAsync(Product);
             await _unitOfWork.SaveChangesAsync();
+            await _cache.RefreshVersionAsync("products");
+            await _cache.RemoveAsync($"product{Id}");
         }
 
         public async Task<PagedResult<ProductReadDto>> GetAllProductsAsync(ProductFilterDto filter)
         {
+            string ProductVerion = await _cache.GetVersionAsync("products");
+            string CacheKey =
+$"products_{ProductVerion}_{filter.PageNumber}_{filter.PageSize}_{filter.Search}_{filter.MinPrice}_{filter.MaxPrice}_{filter.MaxQuantity}_{filter.MinQuantity}_{filter.InStock}_{filter.Sortby}_{filter.IsDescending}";
+
+            var CachedProducts = await _cache.GetAsync<PagedResult<ProductReadDto>>(CacheKey);
+            if (CachedProducts != null)
+                return CachedProducts;
+            
             var Products = await _unitOfWork.ProductsRepo.GetProductsAsync(filter);
-            return new PagedResult<ProductReadDto>
+             var Result = new PagedResult<ProductReadDto>
             {
                 Items = Products.Items.Select(P => new ProductReadDto
                 {
@@ -74,11 +89,20 @@ namespace ECommerce.BIL.Services.ProductService
                 PageSize = Products.PageSize,
                 TotalCount = Products.TotalCount,
             };
+            await _cache.SetAsync(CacheKey, Result,5);
+            return Result;
         }
 
 
         public async Task<ProductReadDto> GetProductByIdAsync(int Id)
         {
+            string CacheKey = $"product{Id}";
+
+            var CacheProduct = await _cache.GetAsync<ProductReadDto>(CacheKey);
+            if (CacheProduct != null)
+            {
+                return CacheProduct;
+            }
             var product = await _unitOfWork.ProductsRepo.GetByIdAsync(Id);
             if (product == null)
             {
@@ -95,7 +119,7 @@ namespace ECommerce.BIL.Services.ProductService
                 QuantityInStock = product.QuntityInStock,
                 RowVersion = product.RowVersion
             };
-
+            await _cache.SetAsync(CacheKey, ProductModel, 10);
             return ProductModel;
         }
 
@@ -115,6 +139,8 @@ namespace ECommerce.BIL.Services.ProductService
             product.IsDeleted = productUpdateDto.IsDeleted;
             await _unitOfWork.ProductsRepo.SetRowVersion(product,productUpdateDto.RowVersion);
             await _unitOfWork.SaveChangesAsync();
+            await _cache.RemoveAsync($"product{productUpdateDto.Id}");
+            await _cache.RefreshVersionAsync("products");
         }
                 
         }
