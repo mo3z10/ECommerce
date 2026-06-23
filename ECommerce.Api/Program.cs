@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using ECommerce.Api.SeedData;
 using ECommerce.BIL.Services.AuthenicationServices;
+using ECommerce.BIL.Services.CacheService;
 using ECommerce.BIL.Services.CartService;
 using ECommerce.BIL.Services.CustomerService;
 using ECommerce.BIL.Services.OrderService;
@@ -46,6 +47,7 @@ builder.Services.AddScoped<ICartItemstRepo,CartItemstRepo>();
 builder.Services.AddScoped<ICartRepo, CartRepo>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped(typeof(IGenericRepo<>), typeof(GenericRepo<>));
 builder.Services.AddMailKit(option =>
 {
@@ -100,6 +102,11 @@ builder.Services.AddCors(options =>
 
 
 }
+);
+builder.Services.AddStackExchangeRedisCache(options => {
+    options.InstanceName = "Redis";
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    }
 );
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())

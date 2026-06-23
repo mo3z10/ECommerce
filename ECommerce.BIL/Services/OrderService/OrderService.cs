@@ -5,17 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Castle.Core.Resource;
 using ECommerce.BIL.DTOS.OrderDtos;
+using ECommerce.BIL.Services.CacheService;
 using ECommerce.DAL.IUnitOfWork;
 using ECommerce.DAL.Models;
 using ECommerce.DAL.PaginationFilterDtos;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ECommerce.BIL.Services.OrderService
 {
     public class OrderService : IOrderService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public OrderService(IUnitOfWork unitOfWork)
+        private readonly ICacheService _cache;
+        public OrderService(IUnitOfWork unitOfWork,ICacheService cache)
         {
+            _cache = cache;
             _unitOfWork = unitOfWork;
             
         }
@@ -90,8 +94,8 @@ namespace ECommerce.BIL.Services.OrderService
             }
             await _unitOfWork.OrdersRepo.CreateAsync(Order);
             await _unitOfWork.SaveChangesAsync();
-
-                
+            await _cache.RefreshVersionAsync("orders");
+            await _cache.RefreshVersionAsync($"orders{Order.CustomerId}");
             }
 
         public async Task DeleteOrderAsync(int OrderId)
@@ -101,11 +105,22 @@ namespace ECommerce.BIL.Services.OrderService
                 throw new KeyNotFoundException("OrderNotFound");
             }
             await _unitOfWork.OrdersRepo.DeleteAsync(Order);
+            await _cache.RemoveAsync($"order{OrderId}");
+            await _cache.RefreshVersionAsync($"orders{Order.CustomerId}");
+            await _cache.RefreshVersionAsync("orders");
         }
         public async Task<PagedResult<OrderReadDto>> GetAllOrdersAsync(OrderFilterDto orderFilterDto)
         {
+            var version = await _cache.GetVersionAsync("orders");
+            var Key =
+ $"All_orders_{version}_{orderFilterDto.PageNumber}_{orderFilterDto.PageSize}_{orderFilterDto.MinQuaintiy}_{orderFilterDto.MaxQuaintiy}_{orderFilterDto.maxTotalPrice}_{orderFilterDto.minTotalPrice}_{orderFilterDto.orderStatus}_{orderFilterDto.Sortby}_{orderFilterDto.IsDescending}";
+            var CachedOrders = await _cache.GetAsync<PagedResult<OrderReadDto>>(Key);
+            if (CachedOrders != null)
+            {
+                return CachedOrders;
+            }
             var Orders = await _unitOfWork.OrdersRepo.GetPagedAllAsync(orderFilterDto);
-            return new PagedResult<OrderReadDto>
+            var OrdersModels =  new PagedResult<OrderReadDto>
             {
                 Items = Orders.Items.Select(o => new OrderReadDto()
                 {
@@ -136,24 +151,34 @@ namespace ECommerce.BIL.Services.OrderService
                 TotalCount = Orders.TotalCount
 
             };
-
+            await _cache.SetAsync(Key, OrdersModels, 5);
+            return OrdersModels;
         }
 
-        public async Task<PagedResult<OrderReadDto>> GetCustomerOrderAsync(string CustomerId,OrderFilterDto orderFilterDto)
+        public async Task<PagedResult<OrderReadDto>> GetCustomerOrderAsync(string CustomerId, OrderFilterDto orderFilterDto)
         {
+            var version = await _cache.GetVersionAsync($"orders{CustomerId}");
+            var Key =
+$"Customer_orders_{CustomerId}_{version}_{orderFilterDto.PageNumber}_{orderFilterDto.PageSize}_{orderFilterDto.MinQuaintiy}_{orderFilterDto.MaxQuaintiy}_{orderFilterDto.maxTotalPrice}_{orderFilterDto.minTotalPrice}_{orderFilterDto.orderStatus}_{orderFilterDto.Sortby}_{orderFilterDto.IsDescending}";
+            var CachedOrders = await _cache.GetAsync<PagedResult<OrderReadDto>>(Key);
+            if (CachedOrders != null)
+            {
+                return CachedOrders;
+            }
+
             var Customer = await _unitOfWork.CustomersRepo.GetByUserIdAsync(CustomerId);
             if (Customer == null)
-            
-                {
+
+            {
                 throw new KeyNotFoundException("CustomerNotFound");
-                }
+            }
             var CustomerOrders = await _unitOfWork.OrdersRepo.GetCustomerOrders(orderFilterDto, Customer.Id);
             if (CustomerOrders == null)
             {
                 throw new Exception("NoOrders");
             }
 
-            var CustomerPagedOrders = CustomerOrders.Items.Select(o => new OrderReadDto()
+            var CustomerPagedOrders =  CustomerOrders.Items.Select(o => new OrderReadDto()
             {
                 CustomerId = o.CustomerId,
                 CustomerName = o.Customer.UserName,
@@ -176,23 +201,32 @@ namespace ECommerce.BIL.Services.OrderService
                 }).ToList()
             }).ToList();
 
-            return new PagedResult<OrderReadDto>
+            var CustomerFinalOrders = new PagedResult<OrderReadDto>
             {
                 Items = CustomerPagedOrders,
-                TotalCount = CustomerPagedOrders.Count(),
-                PageNumber =CustomerOrders.PageNumber,
+                TotalCount = CustomerOrders.TotalCount,
+                PageNumber = CustomerOrders.PageNumber,
                 PageSize = CustomerOrders.PageSize,
             };
+            await _cache.SetAsync(Key, CustomerFinalOrders, 5);
+            return CustomerFinalOrders;
         }
 
         public async Task<OrderReadDto> GetOrderByIdAsync(int OrderId)
         {
+            var Key = $"order{OrderId}";
+            var Cached = await _cache.GetAsync<OrderReadDto>(Key);
+            if (Cached !=null)
+            {
+                return Cached;
+                
+            }
             var order = await _unitOfWork.OrdersRepo.GetByIdAsync(OrderId);
             if (order == null)
             {
                 throw new KeyNotFoundException("OrderNotfound");
             }
-            return new OrderReadDto()
+            var Order =  new OrderReadDto()
             {
                 Id = order.Id,
                 CustomerId = order.CustomerId,
@@ -208,8 +242,9 @@ namespace ECommerce.BIL.Services.OrderService
                     ItemTotalPrice = i.Price * i.Quantity,
                     ItemUnitPrice = i.Price,
                 }).ToList()
-
             };
+            await _cache.SetAsync(Key, Order, 5);
+            return Order;
         }
 
         public async Task UpdateOrderStatusAsync(OrderUpdateStatusDto orderUpdateStatusDto)
@@ -218,10 +253,12 @@ namespace ECommerce.BIL.Services.OrderService
             if (order == null)
             {
                 throw new KeyNotFoundException("OrderNotFound");
-
+                
             }
             order.OrderStatus = orderUpdateStatusDto.Status;
             await _unitOfWork.SaveChangesAsync();
-        }
+            await _cache.RemoveAsync($"order{orderUpdateStatusDto.OrderId}");
+            await _cache.RefreshVersionAsync("orders");
+            await _cache.RefreshVersionAsync($"orders{order.CustomerId}");        }
     }
 }
