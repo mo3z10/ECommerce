@@ -11,6 +11,7 @@
     <PackageReference Include="Hangfire.SqlServer" Version="1.8.23" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.28" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.28" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.28">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -22,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ECommerce.BIL\ECommerce.BIL.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
 </Project>
