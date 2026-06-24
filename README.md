@@ -233,7 +233,7 @@ GET /api/products?sortBy=price&descending=true
 
 ---
 
-# 🗑 Soft Delete System
+# Soft Delete System
 
 Implemented using:
 
@@ -246,6 +246,16 @@ Deleted records remain in database but are hidden from normal users.
 Administrators can access soft-deleted records when needed.
 
 ---
+# Real-Time Notifications (SignalR)
+Features
+Implemeneted Using SingleR integration to Add Real Time Notification and Connection
+* Real-time order status updates
+* Low stock alerts for administrators
+* New customer registration notifications
+* New order creation notifications
+* User-specific notifications using SignalR User Connections
+* Group-based notifications for administrators
+
 
 #  Redis Distributed Caching
 
@@ -422,18 +432,11 @@ ECommerce.DAL
 * Hangfire Background Jobs
 * Email Notifications
 * Scheduled Maintenance Tasks
+* Real Time Notifications Using SingleR
 
 ---
 
 #  Future Improvements
-
-## Real-Time Notifications
-
-Using SignalR:
-
-* Order Status Updates
-* Stock Updates
-* Real-Time Notifications
 
 ## Payment Integration
 
