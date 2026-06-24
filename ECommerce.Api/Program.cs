@@ -1,6 +1,7 @@
 using System.Data;
 using System.Security.Claims;
 using System.Text;
+using ECommerce.Api.HubService;
 using ECommerce.Api.SeedData;
 using ECommerce.BIL.Services.AuthenicationServices;
 using ECommerce.BIL.Services.CacheService;
@@ -120,6 +121,7 @@ builder.Services.AddStackExchangeRedisCache(options => {
 );
 builder.Services.AddHangfire(x=>x.UseSqlServerStorage(builder.Configuration.GetConnectionString("cs")));
 builder.Services.AddHangfireServer();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
@@ -131,6 +133,7 @@ using (var scope = app.Services.CreateScope())
     await SeedData.SeedAdmin(UserManager, RoleManager,Configration);
 }
 app.UseHangfireDashboard("/hangfire");
+app.MapHub<NotificationHub>("/notificationHub");
 
 RecurringJob.AddOrUpdate<IJobService>("Clean Up Unused Carts",x => x.CleanupCarts(), cronExpression: Cron.Daily);
 RecurringJob.AddOrUpdate<IJobService>("Low Stock Alert", x => x.LowStockMail(), Cron.Daily);
