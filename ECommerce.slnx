@@ -2,4 +2,5 @@
   <Project Path="ECommerce.Api/ECommerce.Api.csproj" />
   <Project Path="ECommerce.BIL/ECommerce.BIL.csproj" />
   <Project Path="ECommerce.DAL/ECommerce.DAL.csproj" />
+  <Project Path="Shared/Shared.csproj" Id="367f61d5-6a8d-4456-83cc-b4b8d2ed1a0f" />
 </Solution>

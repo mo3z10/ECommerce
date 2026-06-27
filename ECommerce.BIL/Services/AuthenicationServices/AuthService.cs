@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ECommerce.BIL.DTOS.AuthenticationDtos.AuthDtos;
 using ECommerce.BIL.DTOS.AuthenticationDtos.EmailServicesDtos;
 using ECommerce.BIL.Services.JobSercvices;
+using ECommerce.BIL.Services.NotificationHubService;
 using ECommerce.DAL.IUnitOfWork;
 using ECommerce.DAL.Models;
 using Microsoft.AspNetCore.Http;
@@ -24,6 +25,7 @@ namespace ECommerce.BIL.Services.AuthenicationServices
 {
     public class AuthService : IAuthService
     {
+        private readonly INotificationService _NotificaitonService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
         private readonly RoleManager<IdentityRole> _RoleManager;
@@ -32,8 +34,10 @@ namespace ECommerce.BIL.Services.AuthenicationServices
         private readonly IEmailService _EmailService;
         private readonly IJobService _JobService;
 
-        public AuthService(IConfiguration configuration,RoleManager<IdentityRole> RoleManager, UserManager<ApplicationUser> usermanager,IHttpContextAccessor httpContextAccessor,IEmailService emailService,IUnitOfWork unitOfWork,IJobService jobService)
+        public AuthService
+     (INotificationService NotificaitonService, IConfiguration configuration,RoleManager<IdentityRole> RoleManager, UserManager<ApplicationUser> usermanager,IHttpContextAccessor httpContextAccessor,IEmailService emailService,IUnitOfWork unitOfWork,IJobService jobService)
         {
+            _NotificaitonService = NotificaitonService;
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _usermanager = usermanager;
@@ -230,6 +234,7 @@ namespace ECommerce.BIL.Services.AuthenicationServices
             {
                 await _usermanager.AddToRoleAsync(user, "Customer");
                 _JobService.ApplyWelcomeEmail(user.Email);
+                await _NotificaitonService.NewCustomerRegistered(user.UserName);
             }
 
 
