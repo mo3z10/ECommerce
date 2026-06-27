@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ECommerce.BIL.Services.EmailServices;
+using ECommerce.BIL.Services.NotificationHubService;
 using ECommerce.DAL.IUnitOfWork;
 using Microsoft.Extensions.Configuration;
 using NETCore.MailKit.Core;
@@ -12,11 +13,13 @@ namespace ECommerce.BIL.Services.InventoryJob
 {
     public class InventoryJob : IInventoryJob
     {
+        private readonly INotificationService _notificationService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IDefinedMailService _emailService;
         private readonly IConfiguration _configuration;
-        public InventoryJob(IUnitOfWork unitOfWork,IDefinedMailService emailService,IConfiguration configuration)
+        public InventoryJob(IUnitOfWork unitOfWork,IDefinedMailService emailService,IConfiguration configuration, INotificationService notificationService)
         {
+            _notificationService = notificationService;
             _emailService= emailService;
             _configuration = configuration;
             _unitOfWork = unitOfWork;
@@ -30,6 +33,7 @@ namespace ECommerce.BIL.Services.InventoryJob
             }
             var message = string.Join(Environment.NewLine, LowProduct.Select(x => $"{x.Name}:{x.QuntityInStock}"));
             await _emailService.LowStockMailService(_configuration["Admin:AdminMail"],message);
+            await _notificationService.SendLowStockNotification(message);
         }
     }
 }

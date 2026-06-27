@@ -7,6 +7,7 @@ using Castle.Core.Resource;
 using ECommerce.BIL.DTOS.OrderDtos;
 using ECommerce.BIL.Services.CacheService;
 using ECommerce.BIL.Services.JobSercvices;
+using ECommerce.BIL.Services.NotificationHubService;
 using ECommerce.DAL.IUnitOfWork;
 using ECommerce.DAL.Models;
 using ECommerce.DAL.PaginationFilterDtos;
@@ -14,13 +15,16 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace ECommerce.BIL.Services.OrderService
 {
+
     public class OrderService : IOrderService
     {
+        private readonly INotificationService _notificationService;
         private readonly IJobService _jobService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICacheService _cache;
-        public OrderService(IUnitOfWork unitOfWork,ICacheService cache,IJobService jobService)
+        public OrderService(IUnitOfWork unitOfWork,ICacheService cache,IJobService jobService, INotificationService notificationService)
         {
+            _notificationService = notificationService;
             _jobService = jobService;
             _cache = cache;
             _unitOfWork = unitOfWork;
@@ -44,6 +48,7 @@ namespace ECommerce.BIL.Services.OrderService
                 await _unitOfWork.CartsRepo.ClearCartAsync(Customer.cart.Id);
                 await _unitOfWork.Commit();
                 _jobService.ApplyConfirmationOrderEmail(Customer.ApplicationUser.Email,orderId);
+                await _notificationService.NewOrderCreated(orderId);
                
             }
             catch
@@ -262,6 +267,7 @@ $"Customer_orders_{CustomerId}_{version}_{orderFilterDto.PageNumber}_{orderFilte
             order.OrderStatus = orderUpdateStatusDto.Status;
             await _unitOfWork.SaveChangesAsync();
             _jobService.ApplyOrderStatusEmail(order.Customer.ApplicationUser.Email, order.Id, orderUpdateStatusDto.Status);
+            await _notificationService.SendOrderUpdateStatus(order.Customer.ApplicationUser.Id,order.Id,orderUpdateStatusDto.Status);
             await _cache.RemoveAsync($"order{orderUpdateStatusDto.OrderId}");
             await _cache.RefreshVersionAsync("orders");
             await _cache.RefreshVersionAsync($"orders{order.CustomerId}");        }
