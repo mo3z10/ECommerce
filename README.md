@@ -524,6 +524,10 @@ to
 
 and fill your values.
 
+## Docker Image
+
+docker pull mzy10/ecommerce-api:1.0
+
 ## Run
 
 docker compose up --build
