@@ -484,11 +484,9 @@ ECommerce.DAL
 ## Additional Features
 
 * Wishlist System
-* Product Reviews & Ratings
 * Refresh Tokens
 * Advanced Reporting Dashboard
 * PDF/Excel Sales Reports
-
 ---
 
 #  Learning Goals
