@@ -45,6 +45,26 @@ namespace ECommerce.DAL.IUnitOfWork
             CartsRepo = new CartRepo(eCommerceContext, httpContextAccessor);
             CustomersRepo = new CustomerRepo(eCommerceContext, httpContextAccessor);
         }
+        public async Task ExecuteInTransactionAsync(Func<Task> operation)
+        {
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    await operation();
+                    await SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
+        }
         public async Task BeginTransaction()
         {
             _Transaction = await _context.Database.BeginTransactionAsync();
@@ -54,7 +74,7 @@ namespace ECommerce.DAL.IUnitOfWork
         {
             try
             {
-                await _context.SaveChangesAsync();
+                await SaveChangesAsync();
 
                 if (_Transaction != null)
                 {

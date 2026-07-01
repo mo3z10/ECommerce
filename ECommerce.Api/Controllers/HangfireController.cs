@@ -1,9 +1,11 @@
 ﻿using ECommerce.BIL.Services.JobSercvices;
 using Hangfire;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/jobs")]
 [ApiController]
+[Authorize(Roles ="Admin")]
 public class JobsController : ControllerBase
 {
 

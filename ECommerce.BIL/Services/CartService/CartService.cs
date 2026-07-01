@@ -226,6 +226,7 @@ namespace ECommerce.BIL.Services.CartService
             catch
             {
                 await _unitOfWork.Rollback();
+                throw;
             }
             }
         public async Task<CartReadDto?> GetMyCartAsync(string userId)
