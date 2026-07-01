@@ -8,6 +8,7 @@ using ECommerce.BIL.DTOS.CustomerDtos;
 using ECommerce.BIL.Services.CacheService;
 using ECommerce.DAL.IUnitOfWork;
 using ECommerce.DAL.PaginationFilterDtos;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 
 namespace ECommerce.BIL.Services.CustomerService
@@ -36,6 +37,7 @@ $"customers_{Version}_{filterDto.PageNumber}_{filterDto.PageSize}_{filterDto.Sea
             {
                 Items =  Customers.Items.Select(p => new CustomerReadDto
                 {
+                    UserId = p.ApplicationUser.Id,
                     Id = p.Id,
                     Address = p.Address,
                     PhoneNumber = p.PhoneNumber,
@@ -65,6 +67,7 @@ $"customers_{Version}_{filterDto.PageNumber}_{filterDto.PageSize}_{filterDto.Sea
             }
            var CustomerModel = new CustomerReadDto()
            {
+               UserId = Customer.ApplicationUser.Id,
                Id = Customer.Id,
                Address = Customer.Address,
                PhoneNumber = Customer.PhoneNumber,

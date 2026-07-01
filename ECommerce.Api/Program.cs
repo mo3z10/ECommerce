@@ -80,8 +80,20 @@ builder.Services.AddMailKit(option =>
         Security = true
     });
 });
-builder.Services.AddDbContext<ECommerceContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("cs")).UseLazyLoadingProxies());
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+builder.Services.AddDbContext<ECommerceContext>(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("cs"),
+        sql =>
+        //{
+        //    sql.EnableRetryOnFailure(
+        //        maxRetryCount: 10,
+        //        maxRetryDelay: TimeSpan.FromSeconds(10),
+        //        errorNumbersToAdd: null);
+        //});
+
+    options.UseLazyLoadingProxies());
+}); builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequiredLength = 8;
     options.Password.RequireUppercase = true;
@@ -108,18 +120,39 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) &&
+                path.StartsWithSegments("/notificationHub"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
 });
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("Allow",policy=>policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    options.AddPolicy("Allow",policy=>policy.WithOrigins("http://127.0.0.1:5500", "http://localhost:5500")
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials());
 
 
 }
 );
-builder.Services.AddStackExchangeRedisCache(options => {
+builder.Services.AddStackExchangeRedisCache(options =>
+{
     options.InstanceName = "Redis";
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    }
+}
 );
 builder.Services.AddHangfire(x=>x.UseSqlServerStorage(builder.Configuration.GetConnectionString("cs")));
 builder.Services.AddHangfireServer();
@@ -129,6 +162,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var service = scope.ServiceProvider;
+    var context = service.GetRequiredService<ECommerceContext>();
+
+    await context.Database.MigrateAsync();
     var UserManager = service.GetRequiredService<UserManager<ApplicationUser>>();
     var RoleManager = service.GetRequiredService<RoleManager<IdentityRole>>();
     var Configration = service.GetRequiredService < IConfiguration>();
@@ -142,11 +178,12 @@ RecurringJob.AddOrUpdate<IJobService>("Low Stock Alert", x => x.LowStockMail(), 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    app.UseHttpsRedirection();
 
-app.UseHttpsRedirection();
+}
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseCors("Allow");
 
 app.UseAuthentication();

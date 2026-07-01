@@ -66,11 +66,11 @@ namespace ECommerce.Api.Controllers
 
             return Ok(orders);
         }
-        [HttpGet("Customer{id}")]
+        [HttpGet("Customer/{Customerid}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetCustomerOrders(string id, [FromQuery]OrderFilterDto orderFilterDto)
+        public async Task<IActionResult> GetCustomerOrders(string Customerid, [FromQuery]OrderFilterDto orderFilterDto)
         {
-            var orders = await _orderService.GetCustomerOrderAsync(id,orderFilterDto);
+            var orders = await _orderService.GetCustomerOrderAsync(Customerid,orderFilterDto);
 
             return Ok(orders);
         }

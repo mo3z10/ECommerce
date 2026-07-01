@@ -54,6 +54,8 @@ namespace ECommerce.DAL.Reposatories.CustomerRepo
             return new PagedResult<Customer>
             {
                 Items = PagedCustomer,
+                PageSize = filterDto.PageSize
+                ,
                 PageNumber = filterDto.PageNumber,
                 TotalCount = TotalCount
             };

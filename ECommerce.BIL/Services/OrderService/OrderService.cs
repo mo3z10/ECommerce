@@ -51,14 +51,15 @@ namespace ECommerce.BIL.Services.OrderService
                 await _notificationService.NewOrderCreated(orderId);
                
             }
-            catch
-            {
-                await _unitOfWork.Rollback();
-                throw;
+            catch(Exception ex) {
+                {
+                    await _unitOfWork.Rollback();
+
+                    throw new Exception(ex.Message, ex);
+                }
+                }
 
             }
-
-        }
 
         public async Task<int> CreateOrderAsync(OrderAddDto OrderAddDto)
         {
