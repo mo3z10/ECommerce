@@ -68,6 +68,27 @@ A scalable E-Commerce Backend built with **ASP.NET Core Web API**, **Entity Fram
 * Low Stock Detection System
 
 ---
+# Global Exception Handling
+
+Implemented a centralized exception handling middleware to provide consistent API error responses.
+
+Features:
+
+* Centralized exception handling
+* Consistent JSON error responses
+* Proper HTTP status codes
+* Error logging using ILogger
+* Prevents leaking internal server details
+
+Example response:
+
+```json
+{
+    "statusCode":404,
+    "message":"Product Not Found"
+}
+```
+---
 
 #  Background Processing (Hangfire)
 
@@ -430,7 +451,12 @@ ECommerce.DAL
 ---
 
 #  Implemented Features
-
+* Global Exception Handling Middleware
+* ASP.NET Core Rate Limiting
+* Fixed Window Limiter
+* Sliding Window Limiter
+* Token Bucket Limiter
+* Concurrency Limiter
 * JWT Authentication
 * Role-Based Authorization
 * ASP.NET Identity
@@ -457,6 +483,8 @@ ECommerce.DAL
 * Email Notifications
 * Scheduled Maintenance Tasks
 * Real Time Notifications Using SingleR
+* Docker
+* Docker Compose
 
 ---
 
@@ -476,8 +504,6 @@ ECommerce.DAL
 * Production Hosting
 
 ## DevOps
-
-* Docker
 * CI/CD Pipelines
 * GitHub Actions
 
@@ -492,7 +518,9 @@ ECommerce.DAL
 #  Learning Goals
 
 This project explores:
-
+* API Security
+* Rate Limiting Strategies
+* Global Exception Handling
 * Advanced ASP.NET Core Features
 * Distributed Systems Concepts
 * Background Processing
