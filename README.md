@@ -299,6 +299,22 @@ Return Data
 ```
 
 ---
+# Docker Support
+
+The project is fully containerized using Docker Compose.
+
+Containers:
+
+- ASP.NET Core API
+- SQL Server
+- Redis
+
+Run:
+
+docker compose up --build
+
+
+
 
 # Transaction Management
 
@@ -363,7 +379,15 @@ Separates API models from database entities.
 * Secure Password Hashing
 
 ---
+# Automatic Seeding
 
+The application automatically creates
+
+- Admin Role
+- Customer Role
+- Administrator Account
+
+---
 # 🛠 Technologies Used
 
 * ASP.NET Core Web API
@@ -480,6 +504,41 @@ This project explores:
 * Production Deployment Strategies
 
 ---
+# Getting Started
+
+## Clone
+
+git clone https://github.com/mo3z10/ECommerce.git
+
+cd ECommerce
+
+## Configure
+
+Copy
+
+.env.example
+
+to
+
+.env
+
+and fill your values.
+
+## Run
+
+docker compose up --build
+
+API
+
+http://localhost:8080
+
+Swagger
+
+http://localhost:8080/swagger
+
+Hangfire
+
+http://localhost:8080/hangfire
 
 # Author
 
