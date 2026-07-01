@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ECommerce.Api.Controllers
 {
@@ -19,6 +20,7 @@ namespace ECommerce.Api.Controllers
             _authService = authService;
         }
         [HttpPost("Login")]
+        [EnableRateLimiting("Fixed")]
         public async Task<ActionResult> Login(LoginDto loginDto)
         {
 
@@ -30,6 +32,8 @@ namespace ECommerce.Api.Controllers
             return Ok(result);
         }
         [HttpPost("Register")]
+        [EnableRateLimiting("Fixed")]
+
         public async Task<ActionResult> Register(RegisterDto registerDto)
         {
             var result = await _authService.RegisterAsync(registerDto);
@@ -54,6 +58,8 @@ namespace ECommerce.Api.Controllers
 
 
         [HttpPost("forgot-password")]
+        [EnableRateLimiting("Fixed")]
+
         public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
         {
             

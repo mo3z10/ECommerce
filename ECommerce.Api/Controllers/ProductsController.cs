@@ -4,6 +4,7 @@ using ECommerce.DAL.PaginationFilterDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Identity.Client;
 using Org.BouncyCastle.Crypto.Operators;
 
@@ -21,6 +22,7 @@ namespace ECommerce.Api.Controllers
         }
         [Authorize]
         [HttpGet]
+        [EnableRateLimiting("Sliding")]
         public async Task<ActionResult> GetAllAsync([FromQuery] ProductFilterDto productFilterDto)
         {
             return Ok(await _productService.GetAllProductsAsync(productFilterDto));

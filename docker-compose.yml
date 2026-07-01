@@ -1,8 +1,6 @@
-version: "3.9"
-
 services:
   ecommerce-api:
-    image: moazyasser/ecommerce-api:1.0
+    image: mzy10/ecommerce-api:latest
     container_name: ecommerce-api
     ports:
       - "8080:8080"
