@@ -1,4 +1,3 @@
-using System.Data;
 using System.Security.Claims;
 using System.Text;
 using ECommerce.Api.SeedData;
@@ -24,24 +23,17 @@ using ECommerce.DAL.Reposatories.ProductRepo;
 using ECommerce.Shared.HubService;
 using Hangfire;
 using System.Threading.RateLimiting;
-using MailKit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NETCore.MailKit.Core;
 using NETCore.MailKit.Extensions;
 using NETCore.MailKit.Infrastructure.Internal;
 using Microsoft.AspNetCore.RateLimiting;
 using ECommerce.Api.Middleware;
-
+using Hangfire.Dashboard.BasicAuthorization;
 var builder = WebApplication.CreateBuilder(args);
-
-
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -217,7 +209,26 @@ using (var scope = app.Services.CreateScope())
     var Configration = service.GetRequiredService < IConfiguration>();
     await SeedData.SeedAdmin(UserManager, RoleManager,Configration);
 }
-app.UseHangfireDashboard("/hangfire");
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[]
+    {
+        new BasicAuthAuthorizationFilter(
+            new BasicAuthAuthorizationFilterOptions
+            {
+                RequireSsl = false,
+                LoginCaseSensitive = true,
+                Users = new[]
+                {
+                   new BasicAuthAuthorizationUser
+                   {
+                     Login = builder.Configuration["Hangfire:UserName"],
+                     PasswordClear = builder.Configuration["Hangfire:Password"]
+                    }
+                }
+            })
+    }
+});
 app.MapHub<NotificationHub>("/notificationHub");
 
 RecurringJob.AddOrUpdate<IJobService>("Clean Up Unused Carts",x => x.CleanupCarts(), cronExpression: Cron.Daily);
