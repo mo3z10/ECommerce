@@ -23,6 +23,7 @@ using ECommerce.DAL.Reposatories.GenericRepo;
 using ECommerce.DAL.Reposatories.ProductRepo;
 using ECommerce.Shared.HubService;
 using Hangfire;
+using System.Threading.RateLimiting;
 using MailKit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -34,14 +35,14 @@ using Microsoft.IdentityModel.Tokens;
 using NETCore.MailKit.Core;
 using NETCore.MailKit.Extensions;
 using NETCore.MailKit.Infrastructure.Internal;
+using Microsoft.AspNetCore.RateLimiting;
+using ECommerce.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-// Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -85,12 +86,6 @@ builder.Services.AddDbContext<ECommerceContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("cs"),
         sql =>
-        //{
-        //    sql.EnableRetryOnFailure(
-        //        maxRetryCount: 10,
-        //        maxRetryDelay: TimeSpan.FromSeconds(10),
-        //        errorNumbersToAdd: null);
-        //});
 
     options.UseLazyLoadingProxies());
 }); builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -148,6 +143,58 @@ builder.Services.AddCors(options =>
 
 }
 );
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddFixedWindowLimiter("Fixed", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(1);
+
+        opt.QueueLimit = 2;
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+
+    options.AddSlidingWindowLimiter("Sliding", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.SegmentsPerWindow = 6;
+
+        opt.QueueLimit = 0;
+    });
+
+    options.AddTokenBucketLimiter("Token", opt =>
+    {
+        opt.TokenLimit = 20;
+        opt.TokensPerPeriod = 5;
+        opt.ReplenishmentPeriod = TimeSpan.FromSeconds(10);
+
+        opt.AutoReplenishment = true;
+
+        opt.QueueLimit = 0;
+    });
+
+    options.AddConcurrencyLimiter("Concurrency", opt =>
+    {
+        opt.PermitLimit = 3;
+
+        opt.QueueLimit = 2;
+
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+
+        await context.HttpContext.Response.WriteAsync(
+            "Too many requests. Please try again later.",
+            token);
+    };
+});
+
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.InstanceName = "Redis";
@@ -183,12 +230,12 @@ if (app.Environment.IsDevelopment())
 }
 app.UseSwagger();
 app.UseSwaggerUI();
-
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseCors("Allow");
+app.UseRateLimiter();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
-
 app.MapControllers();
 app.Run();
