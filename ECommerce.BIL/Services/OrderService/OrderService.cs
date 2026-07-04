@@ -44,11 +44,13 @@ namespace ECommerce.BIL.Services.OrderService
             try
             {
 
-               var orderId =  await CreateOrderAsync(OrderAdd);
+               var order =  await CreateOrderAsync(OrderAdd);
                 await _unitOfWork.CartsRepo.ClearCartAsync(Customer.cart.Id);
                 await _unitOfWork.Commit();
-                _jobService.ApplyConfirmationOrderEmail(Customer.ApplicationUser.Email,orderId);
-                await _notificationService.NewOrderCreated(orderId);
+                await _cache.RefreshVersionAsync("orders");
+                await _cache.RefreshVersionAsync($"orders{order.CustomerId}");
+                _jobService.ApplyConfirmationOrderEmail(Customer.ApplicationUser.Email,order.Id);
+                await _notificationService.NewOrderCreated(order.Id);
                
             }
             catch(Exception ex) {
@@ -61,7 +63,7 @@ namespace ECommerce.BIL.Services.OrderService
 
             }
 
-        public async Task<int> CreateOrderAsync(OrderAddDto OrderAddDto)
+        public async Task<Order> CreateOrderAsync(OrderAddDto OrderAddDto)
         {
             var Customer = await _unitOfWork.CustomersRepo.GetByUserIdAsync(OrderAddDto.UserId);
             if (Customer == null)
@@ -103,9 +105,7 @@ namespace ECommerce.BIL.Services.OrderService
                 item.Product.QuntityInStock -= item.Quantity;
             }
             await _unitOfWork.OrdersRepo.CreateAsync(Order);
-            await _cache.RefreshVersionAsync("orders");
-            await _cache.RefreshVersionAsync($"orders{Order.CustomerId}");
-            return Order.Id;
+            return Order;
             }
 
         public async Task DeleteOrderAsync(int OrderId)
