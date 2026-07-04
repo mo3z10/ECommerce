@@ -209,9 +209,9 @@ namespace ECommerce.BIL.Services.CartService
             try
             {
 
-                if (dto.Quantity <= 0)
+                if (dto.Quantity < 0)
                 {
-                    customer.cart.cartItems.Remove(cartItem);
+                    throw new InvalidOperationException("Quantity cannot be negative.");
 
                 }
                 else {
