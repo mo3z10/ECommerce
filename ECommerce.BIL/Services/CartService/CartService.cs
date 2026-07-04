@@ -43,7 +43,7 @@ namespace ECommerce.BIL.Services.CartService
                 var newQuantity = existingItem.Quantity + dto.Quaintity;
                 if (newQuantity > product.QuntityInStock)
                 {
-                    throw new Exception(
+                    throw new InvalidOperationException(
                         $"Quantity isn't available. Only {product.QuntityInStock} from {product.Name}"
                     );
                 }
