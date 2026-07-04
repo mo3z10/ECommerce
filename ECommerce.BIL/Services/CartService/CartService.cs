@@ -40,7 +40,7 @@ namespace ECommerce.BIL.Services.CartService
         .FirstOrDefault(x => x.ProductId == dto.ProductId);
             if (existingItem != null)
             {
-                var newQuantity = existingItem.Quantity + dto.Quaintity;
+                var newQuantity = existingItem.Quantity + dto.Quantity;
                 if (newQuantity > product.QuntityInStock)
                 {
                     throw new InvalidOperationException(
@@ -51,16 +51,16 @@ namespace ECommerce.BIL.Services.CartService
             }
             else
             {
-                if (dto.Quaintity > product.QuntityInStock)
+                if (dto.Quantity > product.QuntityInStock)
                 {
-                    throw new Exception($"Quantity Isn't Avaialble  only {product.QuntityInStock} from {product.Name}");
+                    throw new InvalidOperationException($"Quantity Isn't Avaialble  only {product.QuntityInStock} from {product.Name}");
 
                 }
                 var Item = new CartItem
                 {
                     CartId = cart.Id,
                     ProductId = dto.ProductId,
-                    Quantity = dto.Quaintity
+                    Quantity = dto.Quantity
                 };
 
                 cart.cartItems.Add(Item);
@@ -209,9 +209,9 @@ namespace ECommerce.BIL.Services.CartService
             try
             {
 
-                if (dto.Quantity < 0)
+                if (dto.Quantity <= 0)
                 {
-                    throw new InvalidOperationException("Quantity cannot be negative.");
+                    customer.cart.cartItems.Remove(cartItem);
 
                 }
                 else {

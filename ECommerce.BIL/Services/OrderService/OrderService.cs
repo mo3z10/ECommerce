@@ -105,6 +105,11 @@ namespace ECommerce.BIL.Services.OrderService
                 item.Product.QuntityInStock -= item.Quantity;
             }
             await _unitOfWork.OrdersRepo.CreateAsync(Order);
+            await _cache.RefreshVersionAsync("products");
+            foreach(var item in Order.OrderItems)
+            {
+                await _cache.RemoveAsync($"product{item.ProductId}");
+            }
             return Order;
             }
 
