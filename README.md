@@ -267,6 +267,42 @@ Deleted records remain in database but are hidden from normal users.
 Administrators can access soft-deleted records when needed.
 
 ---
+
+# Rate Limiting
+
+Implemented using **ASP.NET Core Rate Limiting Middleware** to protect the API from abuse attacks, and excessive traffic.
+
+## Features
+
+* Fixed Window Limiter
+* Sliding Window Limiter
+* Token Bucket Limiter
+* Concurrency Limiter
+* Automatic HTTP 429 (Too Many Requests) responses
+---
+
+## Fixed Window Limiter
+## Sliding Window Limiter
+## Concurrency Limiter
+
+
+## Custom Rejection Response
+
+When a client exceeds the configured limit, the API returns:
+
+```http
+HTTP/1.1 429 Too Many Requests
+```
+
+Example response:
+
+```json
+{
+    "message": "Too many requests. Please try again later."
+}
+```
+
+---
 # Real-Time Notifications (SignalR)
 Features
 Implemeneted Using SingleR integration to Add Real Time Notification and Connection
@@ -597,6 +633,9 @@ Skills:
 * SQL Server
 * Redis
 * Hangfire
+* Stripe
+* SingleR
+* Rate Limiting
 * REST APIs
 * Authentication & Authorization
 * Design Patterns
