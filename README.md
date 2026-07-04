@@ -565,7 +565,7 @@ and fill your values.
 
 ## Docker Image
 
-docker pull mzy10/ecommerce-api:1.0
+docker pull mzy10/ecommerce-api:latest
 
 ## Run
 
