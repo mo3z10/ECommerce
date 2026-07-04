@@ -11,6 +11,6 @@ namespace ECommerce.BIL.DTOS.CartDtos
     {
         public int ProductId { get; set; }
         [Range(0, int.MaxValue, ErrorMessage = "Quantity cannot be negative")]
-        public int Quaintity { get; set; }
+        public int Quantity { get; set; }
     }
 }
