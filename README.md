@@ -277,6 +277,43 @@ Implemeneted Using SingleR integration to Add Real Time Notification and Connect
 * User-specific notifications using SignalR User Connections
 * Group-based notifications for administrators
 
+---
+# Payment Integration (Stripe)
+
+Implemented Stripe payment integration 
+
+Current Features:
+
+* Create Payment Intent
+* Retrieve Payment Status
+* Cancel Payment Intent
+* Stripe Webhook Endpoint
+* Secure API Key Configuration using Environment Variables
+* Automatic Payment Methods Support
+Current Payment Flow
+
+```
+Client
+    |
+    |
+Create Payment Intent
+    |
+    |
+Stripe
+    |
+    |
+Return Client Secret
+    |
+    |
+Frontend Confirms Payment
+    |
+    |
+Stripe Sends Webhook
+    |
+    |
+Backend Verifies Payment
+```
+---
 
 #  Redis Distributed Caching
 
@@ -419,6 +456,7 @@ The application automatically creates
 * Redis Distributed Cache
 * Hangfire Background Processing
 * MailKit Email Service
+* Stripe .Net
 * LINQ
 * Swagger / OpenAPI
 * C#
@@ -483,21 +521,18 @@ ECommerce.DAL
 * Email Notifications
 * Scheduled Maintenance Tasks
 * Real Time Notifications Using SingleR
+* Stripe Payment Integration
+* Payment Intent Creation
+* Payment Status Tracking
+* Payment Cancellation
+* Stripe Webhook Verification
 * Docker
 * Docker Compose
 
 ---
 
 #  Future Improvements
-
-## Payment Integration
-
-* Stripe Integration
-* Secure Checkout
-* Payment Verification
-
 ## Cloud Deployment
-
 * Azure App Service
 * Azure SQL Database
 * Azure Storage
@@ -506,28 +541,6 @@ ECommerce.DAL
 ## DevOps
 * CI/CD Pipelines
 * GitHub Actions
-
-## Additional Features
-
-* Wishlist System
-* Refresh Tokens
-* Advanced Reporting Dashboard
-* PDF/Excel Sales Reports
----
-
-#  Learning Goals
-
-This project explores:
-* API Security
-* Rate Limiting Strategies
-* Global Exception Handling
-* Advanced ASP.NET Core Features
-* Distributed Systems Concepts
-* Background Processing
-* Cloud Computing
-* Real-Time Applications
-* Scalable Backend Architectures
-* Production Deployment Strategies
 
 ---
 # Getting Started
