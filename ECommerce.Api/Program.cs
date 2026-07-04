@@ -213,9 +213,6 @@ using (var scope = app.Services.CreateScope())
     await SeedData.SeedAdmin(UserManager, RoleManager,Configration);
 }
 app.MapHub<NotificationHub>("/notificationHub");
-
-RecurringJob.AddOrUpdate<IJobService>("Clean Up Unused Carts",x => x.CleanupCarts(), cronExpression: Cron.Daily);
-RecurringJob.AddOrUpdate<IJobService>("Low Stock Alert", x => x.LowStockMail(), Cron.Daily);
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -226,32 +223,20 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseCors("Allow");
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
-{
-    Authorization = new[]
-    {
-        new BasicAuthAuthorizationFilter(
-            new BasicAuthAuthorizationFilterOptions
-            {
-                RequireSsl = false,
-                LoginCaseSensitive = true,
-                Users = new[]
-                {
-                   new BasicAuthAuthorizationUser
-                   {
-                     Login = builder.Configuration["Hangfire:UserName"],
-                     PasswordClear = builder.Configuration["Hangfire:Password"]
-                    }
-                }
-            })
-    }
-});
+app.UseHangfireDashboard();
 
 app.UseRateLimiter();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
+RecurringJob.AddOrUpdate<IJobService>("Clean Up Unused Carts",
+    x => x.CleanupCarts(), 
+    cronExpression: Cron.Daily);
+RecurringJob.AddOrUpdate<IJobService>("Low Stock Alert",
+    x => x.LowStockMail(),
+    Cron.Daily);
+
 
 app.MapControllers();
 app.Run();
