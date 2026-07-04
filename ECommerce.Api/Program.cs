@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
+using ECommerce.Api.Middleware;
 using ECommerce.Api.SeedData;
 using ECommerce.BIL.Services.AuthenicationServices;
 using ECommerce.BIL.Services.CacheService;
@@ -11,6 +13,7 @@ using ECommerce.BIL.Services.InventoryJob;
 using ECommerce.BIL.Services.JobSercvices;
 using ECommerce.BIL.Services.NotificationHubService;
 using ECommerce.BIL.Services.OrderService;
+using ECommerce.BIL.Services.PaymentServices;
 using ECommerce.BIL.Services.ProductService;
 using ECommerce.DAL.Database;
 using ECommerce.DAL.IUnitOfWork;
@@ -22,17 +25,16 @@ using ECommerce.DAL.Reposatories.GenericRepo;
 using ECommerce.DAL.Reposatories.ProductRepo;
 using ECommerce.Shared.HubService;
 using Hangfire;
-using System.Threading.RateLimiting;
+using Hangfire.Dashboard.BasicAuthorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NETCore.MailKit.Core;
 using NETCore.MailKit.Extensions;
 using NETCore.MailKit.Infrastructure.Internal;
-using Microsoft.AspNetCore.RateLimiting;
-using ECommerce.Api.Middleware;
-using Hangfire.Dashboard.BasicAuthorization;
+using Stripe;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -42,7 +44,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IProductService, ProductSerivce>();
 builder.Services.AddScoped<IProductRepo, ProductRepo>();
-builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<ICustomerService, ECommerce.BIL.Services.CustomerService.CustomerService>();
 builder.Services.AddScoped<ICustomerRepo, CustomerRepo>();
 builder.Services.AddScoped<ICartItemstRepo,CartItemstRepo>();
 builder.Services.AddScoped<ICartRepo, CartRepo>();
@@ -54,6 +56,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IDefinedMailService,DefinedMailService>();
 builder.Services.AddScoped<ICartJob, CartJob>();
 builder.Services.AddScoped<IInventoryJob,InventoryJob>();
+builder.Services.AddScoped<IPaymentService,PaymentService>();
 builder.Services.AddScoped(typeof(IGenericRepo<>), typeof(GenericRepo<>));
 builder.Services.AddMailKit(option =>
 {
@@ -196,7 +199,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 builder.Services.AddHangfire(x=>x.UseSqlServerStorage(builder.Configuration.GetConnectionString("cs")));
 builder.Services.AddHangfireServer();
 builder.Services.AddSignalR();
-
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
@@ -209,6 +212,20 @@ using (var scope = app.Services.CreateScope())
     var Configration = service.GetRequiredService < IConfiguration>();
     await SeedData.SeedAdmin(UserManager, RoleManager,Configration);
 }
+app.MapHub<NotificationHub>("/notificationHub");
+
+RecurringJob.AddOrUpdate<IJobService>("Clean Up Unused Carts",x => x.CleanupCarts(), cronExpression: Cron.Daily);
+RecurringJob.AddOrUpdate<IJobService>("Low Stock Alert", x => x.LowStockMail(), Cron.Daily);
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+
+}
+app.UseSwagger();
+app.UseSwaggerUI();
+app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseCors("Allow");
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
     Authorization = new[]
@@ -229,24 +246,12 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
             })
     }
 });
-app.MapHub<NotificationHub>("/notificationHub");
 
-RecurringJob.AddOrUpdate<IJobService>("Clean Up Unused Carts",x => x.CleanupCarts(), cronExpression: Cron.Daily);
-RecurringJob.AddOrUpdate<IJobService>("Low Stock Alert", x => x.LowStockMail(), Cron.Daily);
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-
-}
-app.UseSwagger();
-app.UseSwaggerUI();
-app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseCors("Allow");
 app.UseRateLimiter();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
+
 app.MapControllers();
 app.Run();
