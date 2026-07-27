@@ -61,20 +61,9 @@ builder.Services.AddScoped<IPaymentService,PaymentService>();
 builder.Services.AddScoped(typeof(IGenericRepo<>), typeof(GenericRepo<>));
 builder.Services.AddMailKit(option =>
 {
-    option.UseMailKit(new MailKitOptions
+    builder.Services.AddMailKit(option =>
     {
-        Server = "smtp.gmail.com",
-        Port = 587,
-
-        SenderName = "ECommerce",
-
-        SenderEmail = "moazyasser983@gmail.com",
-
-        Account = "moazyasser983@gmail.com",
-
-        Password = "xtkxxlyxhlrwuwjj",
-
-        Security = true
+        option.UseMailKit(builder.Configuration.GetSection("MailKit").Get<MailKitOptions>());
     });
 });
 builder.Services.AddDbContext<ECommerceContext>(options =>
